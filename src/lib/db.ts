@@ -1,10 +1,19 @@
 /**
  * Supabase DB layer using native Node.js fetch.
- * No `curl` dependency — works in Vercel serverless runtime.
+ * Lazy init — env vars are NOT evaluated at module load time
+ * (avoids build-time crash in Next.js server component prerendering).
  */
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const apiBase = supabaseUrl.replace(/\/$/, "") + "/rest/v1";
+function getApiBase(): string {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!url) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
+  return url.replace(/\/$/, "") + "/rest/v1";
+}
+
+function getAnonKey(): string {
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!key) throw new Error("Missing NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  return key;
+}
 
 async function request<T = any>(
   method: string,
@@ -13,10 +22,10 @@ async function request<T = any>(
 ): Promise<{ data: T | null; count: number | null; error: any }> {
   try {
     const params = options.query ? "?" + new URLSearchParams(options.query).toString() : "";
-    const url = `${apiBase}/${table}${params}`;
+    const url = `${getApiBase()}/${table}${params}`;
 
     const headers: Record<string, string> = {
-      apikey: anonKey,
+      apikey: getAnonKey(),
       ...options.extraHeaders,
     } as Record<string, string>;
 
@@ -62,6 +71,8 @@ async function patch<T = any>(table: string, body: any, query: string): Promise<
   });
 }
 
+// ── Types ──
+
 export interface Product {
   id: string;
   title: string;
@@ -106,6 +117,8 @@ export interface AuditEntry {
   metadata?: Record<string, unknown>;
 }
 
+// ── Mappers ──
+
 function rowToProduct(r: any): Product {
   return {
     id: r.id, title: r.title, slug: r.slug, description: r.description,
@@ -132,6 +145,8 @@ function rowToOrder(r: any): Order {
     createdAt: r.created_at, updatedAt: r.updated_at,
   };
 }
+
+// ── Products ──
 
 export async function getProducts(status?: string): Promise<Product[]> {
   const query: Record<string, string> = { select: "*", order: "created_at.desc" };
@@ -178,6 +193,8 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
   if (error) throw new Error(`updateProduct: ${error.message}`);
 }
 
+// ── Orders ──
+
 export async function getOrders(): Promise<Order[]> {
   const { data, error } = await get("orders", { select: "*", order: "created_at.desc" });
   if (error) throw new Error(`getOrders: ${error.message}`);
@@ -212,6 +229,8 @@ export async function updateOrder(id: string, updates: Partial<Order>): Promise<
   if (error) throw new Error(`updateOrder: ${error.message}`);
 }
 
+// ── Audit ──
+
 export async function getAuditLog(limit = 100, offset = 0): Promise<{ entries: AuditEntry[]; total: number }> {
   const { data, error } = await get("audit_log", {
     select: "*", order: "timestamp.desc", limit: String(limit), offset: String(offset),
@@ -234,11 +253,15 @@ export async function addAuditEntry(entry: AuditEntry): Promise<void> {
   if (error) throw new Error(`addAuditEntry: ${error.message}`);
 }
 
+// ── Suppliers ──
+
 export async function getSuppliers(): Promise<any[]> {
   const { data, error } = await get("suppliers", { select: "*" });
   if (error) throw new Error(`getSuppliers: ${error.message}`);
   return data || [];
 }
+
+// ── Settings ──
 
 export async function getSetting(key: string): Promise<string | undefined> {
   const { data, error } = await get("settings", { key: `eq.${key}`, select: "value" });
