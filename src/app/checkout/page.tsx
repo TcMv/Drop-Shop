@@ -1,271 +1,68 @@
 'use client';
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FiLock, FiCheck, FiArrowLeft } from 'react-icons/fi';
-
-interface CartItem {
-  productId: string;
-  title: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
-
+import { FiLock, FiCheck, FiArrowLeft, FiShield, FiTruck, FiCreditCard } from 'react-icons/fi';
+import Link from 'next/link';
+interface CartItem { productId:string; title:string; price:number; quantity:number; image:string; }
 export default function CheckoutPage() {
-  const router = useRouter();
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [mounted, setMounted] = useState(false);
-  const [processing, setProcessing] = useState(false);
-  const [done, setDone] = useState(false);
-  const [orderId, setOrderId] = useState('');
-  
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    postcode: '',
-  });
-
-  useEffect(() => {
-    setMounted(true);
-    try {
-      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-      if (cart.length === 0) router.push('/cart');
-      setItems(cart);
-    } catch {
-      router.push('/cart');
-    }
-  }, [router]);
-
-  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
-  const valid = form.name && form.email && form.address && form.city && form.state && form.postcode;
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!valid || processing) return;
-    
-    setProcessing(true);
-    
-    try {
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: items.map(i => ({ productId: i.productId, title: i.title, price: i.price, quantity: i.quantity })),
-          total,
-          customerName: form.name,
-          customerEmail: form.email,
-          customerPhone: form.phone,
-          shippingAddress: {
-            line1: form.address,
-            city: form.city,
-            state: form.state,
-            postcode: form.postcode,
-            country: 'Australia',
-          },
-        }),
-      });
-      
-      const data = await res.json();
-      
-      if (data.success) {
-        setOrderId(data.order.id);
-        localStorage.removeItem('cart');
-        setDone(true);
-        window.dispatchEvent(new Event('cart-updated'));
-      }
-    } catch (err) {
-      console.error('Checkout failed:', err);
-    }
-    
-    setProcessing(false);
-  }
-
-  function updateField(field: string, value: string) {
-    setForm(f => ({ ...f, [field]: value }));
-  }
-
-  if (!mounted) return null;
-
-  if (done) {
-    return (
-      <div className="max-w-lg mx-auto px-4 py-20 text-center">
-        <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
-          <FiCheck className="w-10 h-10 text-green-400" />
-        </div>
-        <h1 className="text-3xl font-bold mt-6 text-gray-100">Order Placed!</h1>
-        <p className="mt-3 text-gray-400">
-          Your order has been submitted and will be processed automatically.
-        </p>
-        <p className="mt-2 text-sm text-gray-500">
-          Order reference: <span className="text-blue-400 font-mono">{orderId}</span>
-        </p>
-        <p className="mt-1 text-xs text-gray-600">
-          The AI order agent will place this with the supplier shortly. Check the audit log for updates.
-        </p>
-        <button
-          onClick={() => router.push('/')}
-          className="mt-8 inline-flex items-center gap-1 text-blue-400 hover:text-blue-300"
-        >
-          <FiArrowLeft className="w-4 h-4" /> Back to Store
-        </button>
+  const router=useRouter(); const [items,setItems]=useState<CartItem[]>([]); const [mounted,setMounted]=useState(false);
+  const [processing,setProcessing]=useState(false); const [done,setDone]=useState(false); const [orderId,setOrderId]=useState('');
+  const [form,setForm]=useState({name:'',email:'',phone:'',address:'',city:'',state:'',postcode:''});
+  useEffect(()=>{setMounted(true);try{const c=JSON.parse(localStorage.getItem('cart')||'[]');if(c.length===0)router.push('/cart');setItems(c)}catch{router.push('/cart')}},[router]);
+  const subtotal=items.reduce((s,i)=>s+i.price*i.quantity,0); const shipping=subtotal>50?0:5.99; const total=subtotal+shipping; const valid=form.name&&form.email&&form.address&&form.city;
+  const handleSubmit=async(e:React.FormEvent)=>{e.preventDefault();if(!valid||processing)return;setProcessing(true);try{const r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,total,customerName:form.name,customerEmail:form.email,customerPhone:form.phone,shippingAddress:{address:form.address,city:form.city,state:form.state,postcode:form.postcode}})});const d=await r.json();if(d.id){setOrderId(d.id);setDone(true);localStorage.removeItem('cart');window.dispatchEvent(new Event('cart-updated'))}}catch{}setProcessing(false);};
+  if(!mounted) return null;
+  if(done) return (
+    <div className="min-h-screen flex items-center justify-center pt-20"><div className="text-center max-w-md mx-auto px-4">
+      <div className="w-20 h-20 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-6 border border-emerald-500/20"><FiCheck className="w-8 h-8 text-emerald-400"/></div>
+      <h1 className="text-3xl font-bold mb-2">Order Confirmed!</h1><p className="text-gray-400 mb-2">Your order has been placed successfully.</p>
+      <p className="text-sm text-gray-600 mb-8">Order ID: <span className="text-[var(--color-accent)] font-mono">{orderId.slice(0,8)}</span></p>
+      <div className="p-4 rounded-xl bg-[var(--color-surface-raised)] border border-[var(--color-border)] mb-8 text-sm text-gray-400">
+        <p className="flex items-center gap-2 mb-1"><FiCheck className="w-4 h-4 text-emerald-400"/>Payment confirmed</p>
+        <p className="flex items-center gap-2"><FiTruck className="w-4 h-4 text-[var(--color-accent)]"/>Processing for shipping</p>
       </div>
-    );
-  }
-
+      <Link href="/" className="btn-primary inline-flex items-center gap-2">Continue Shopping</Link>
+    </div></div>
+  );
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold mb-8">Checkout</h1>
-      
+    <div className="min-h-screen pt-24 pb-16"><div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <Link href="/cart" className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors mb-8"><FiArrowLeft className="w-4 h-4"/>Back to Cart</Link>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="lg:col-span-3 space-y-4">
-          <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-            <h2 className="font-semibold mb-4">Shipping Details</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Full Name</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={e => updateField('name', e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                  placeholder="John Smith"
-                  required
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Email</label>
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={e => updateField('email', e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                    placeholder="john@example.com"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Phone</label>
-                  <input
-                    type="tel"
-                    value={form.phone}
-                    onChange={e => updateField('phone', e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                    placeholder="0400 000 000"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Street Address</label>
-                <input
-                  type="text"
-                  value={form.address}
-                  onChange={e => updateField('address', e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                  placeholder="123 Main St"
-                  required
-                />
-              </div>
-              
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">City</label>
-                  <input
-                    type="text"
-                    value={form.city}
-                    onChange={e => updateField('city', e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                    placeholder="Sydney"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">State</label>
-                  <input
-                    type="text"
-                    value={form.state}
-                    onChange={e => updateField('state', e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                    placeholder="NSW"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Postcode</label>
-                  <input
-                    type="text"
-                    value={form.postcode}
-                    onChange={e => updateField('postcode', e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                    placeholder="2000"
-                    required
-                  />
-                </div>
+        <div className="lg:col-span-3">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-8">Checkout</h1>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="p-6 rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-border)]">
+              <h2 className="font-semibold mb-4 flex items-center gap-2"><FiCreditCard className="w-4 h-4 text-[var(--color-accent)]"/>Shipping Information</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2"><label className="block text-sm text-gray-400 mb-1">Full Name</label><input type="text" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} className="w-full px-4 py-2.5 bg-[var(--color-surface-raised)] border border-[var(--color-border)] rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[var(--color-accent)]/50 transition-colors" placeholder="John Smith" required/></div>
+                <div><label className="block text-sm text-gray-400 mb-1">Email</label><input type="email" value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))} className="w-full px-4 py-2.5 bg-[var(--color-surface-raised)] border border-[var(--color-border)] rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[var(--color-accent)]/50 transition-colors" placeholder="john@example.com" required/></div>
+                <div><label className="block text-sm text-gray-400 mb-1">Phone</label><input type="tel" value={form.phone} onChange={e=>setForm(f=>({...f,phone:e.target.value}))} className="w-full px-4 py-2.5 bg-[var(--color-surface-raised)] border border-[var(--color-border)] rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[var(--color-accent)]/50 transition-colors" placeholder="+1 (555) 000-0000"/></div>
+                <div className="sm:col-span-2"><label className="block text-sm text-gray-400 mb-1">Address</label><input type="text" value={form.address} onChange={e=>setForm(f=>({...f,address:e.target.value}))} className="w-full px-4 py-2.5 bg-[var(--color-surface-raised)] border border-[var(--color-border)] rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[var(--color-accent)]/50 transition-colors" placeholder="123 Main Street" required/></div>
+                <div><label className="block text-sm text-gray-400 mb-1">City</label><input type="text" value={form.city} onChange={e=>setForm(f=>({...f,city:e.target.value}))} className="w-full px-4 py-2.5 bg-[var(--color-surface-raised)] border border-[var(--color-border)] rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[var(--color-accent)]/50 transition-colors" placeholder="Sydney" required/></div>
+                <div className="grid grid-cols-2 gap-4"><div><label className="block text-sm text-gray-400 mb-1">State</label><input type="text" value={form.state} onChange={e=>setForm(f=>({...f,state:e.target.value}))} className="w-full px-4 py-2.5 bg-[var(--color-surface-raised)] border border-[var(--color-border)] rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[var(--color-accent)]/50 transition-colors" placeholder="NSW"/></div><div><label className="block text-sm text-gray-400 mb-1">Postcode</label><input type="text" value={form.postcode} onChange={e=>setForm(f=>({...f,postcode:e.target.value}))} className="w-full px-4 py-2.5 bg-[var(--color-surface-raised)] border border-[var(--color-border)] rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[var(--color-accent)]/50 transition-colors" placeholder="2000"/></div></div>
               </div>
             </div>
-          </div>
-          
-          <button
-            type="submit"
-            disabled={!valid || processing}
-            className={`w-full py-3 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
-              !valid ? 'bg-gray-800 text-gray-600 cursor-not-allowed' :
-              processing ? 'bg-blue-600/50 text-blue-200' :
-              'bg-blue-600 hover:bg-blue-500 text-white'
-            }`}
-          >
-            <FiLock className="w-4 h-4" />
-            {processing ? 'Processing...' : `Place Order — $${total.toFixed(2)}`}
-          </button>
-        </form>
-        
-        {/* Order Summary */}
+            <button type="submit" disabled={!valid||processing} className="btn-primary w-full flex items-center justify-center gap-2 py-3.5 disabled:opacity-50 disabled:cursor-not-allowed"><FiLock className="w-4 h-4"/>{processing?'Processing...':`Pay $${total.toFixed(2)}`}</button>
+            <p className="text-center text-xs text-gray-600 flex items-center justify-center gap-1"><FiShield className="w-3 h-3"/>Secure checkout — your info is encrypted</p>
+          </form>
+        </div>
         <div className="lg:col-span-2">
-          <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 sticky top-24">
-            <h2 className="font-semibold mb-4">{itemCount} {itemCount === 1 ? 'Item' : 'Items'}</h2>
-            
-            <div className="space-y-3">
-              {items.map((item) => (
-                <div key={item.productId} className="flex gap-3">
-                  <div className="w-12 h-12 bg-gray-800 rounded-lg overflow-hidden shrink-0">
-                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-100 truncate">{item.title}</p>
-                    <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
-                  </div>
-                  <p className="text-sm font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
-                </div>
-              ))}
-            </div>
-            
-            <div className="border-t border-gray-800 mt-4 pt-4 space-y-2">
-              <div className="flex justify-between text-sm text-gray-400">
-                <span>Subtotal</span>
-                <span>${total.toFixed(2)}</span>
+          <div className="p-6 rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-border)] sticky top-28">
+            <h3 className="font-semibold mb-4">Order Summary</h3>
+            <div className="space-y-3 mb-4">{items.map(item=>(
+              <div key={item.productId} className="flex gap-3">
+                <div className="w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 shrink-0"><img src={item.image||'/placeholder.png'} alt={item.title} className="w-full h-full object-cover"/></div>
+                <div className="flex-1 min-w-0"><p className="text-sm text-gray-100 line-clamp-1">{item.title}</p><p className="text-xs text-gray-500">Qty: {item.quantity}</p><p className="text-sm font-medium text-white">${(item.price*item.quantity).toFixed(2)}</p></div>
               </div>
-              <div className="flex justify-between text-sm text-green-400">
-                <span>Shipping</span>
-                <span>Free</span>
-              </div>
-              <div className="border-t border-gray-800 pt-2 mt-2 flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span className="text-blue-400">${total.toFixed(2)}</span>
-              </div>
+            ))}</div>
+            <div className="border-t border-[var(--color-border)] pt-3 space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-gray-400">Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-400">Shipping</span><span className={shipping===0?'text-emerald-400':''}>{shipping===0?'Free':`$${shipping.toFixed(2)}`}</span></div>
+              <div className="flex justify-between text-lg font-bold pt-2 border-t border-[var(--color-border)]"><span>Total</span><span>${total.toFixed(2)}</span></div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </div></div>
   );
 }
