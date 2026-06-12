@@ -1,219 +1,276 @@
-import { createClient } from '@supabase/supabase-js';
-import type { Product, Order, AuditEntry, Supplier } from './types';
+import { execFile } from "child_process";
+import { promisify } from "util";
+
+const exec = promisify(execFile);
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const apiBase = supabaseUrl.replace(/\/$/, "") + "/rest/v1";
 
-// Use service role key for server-side operations (bypasses RLS)
-const sb = createClient(supabaseUrl, serviceRoleKey || supabaseKey);
+/**
+ * Supabase client using curl (Node.js native fetch/TLS has fingerprinting
+ * issues with Cloudflare in front of Supabase REST API).
+ */
+export async function supabaseGet<T = any>(
+  table: string,
+  params: Record<string, string> = {},
+  options: { count?: "exact" } = {}
+): Promise<{ data: T[] | null; count: number | null; error: any }> {
+  try {
+    const query = new URLSearchParams(params).toString();
+    const url = `${apiBase}/${table}${query ? "?" + query : ""}`;
 
-// ── Helpers to map between DB snake_case and TS camelCase ──
+    const { stdout } = await exec("curl", [
+      "-s",
+      "-H", `apikey: ${anonKey}`,
+      url,
+    ], { timeout: 15000 });
 
-function rowToProduct(row: any): Product {
+    const data = JSON.parse(stdout);
+    return { data: Array.isArray(data) ? data as T[] : null, count: null, error: null };
+  } catch (err: any) {
+    return { data: null, count: null, error: { message: err.stderr || err.message || String(err) } };
+  }
+}
+
+export async function supabasePost<T = any>(
+  table: string,
+  body: any,
+  headers: Record<string, string> = {}
+): Promise<{ data: T | null; error: any }> {
+  try {
+    const payload = JSON.stringify(body);
+    const args = [
+      "-s",
+      "-X", "POST",
+      "-H", `apikey: ${anonKey}`,
+      "-H", "Content-Type: application/json",
+      ...Object.entries(headers).flatMap(([k, v]) => ["-H", `${k}: ${v}`]),
+      "-d", payload,
+      `${apiBase}/${table}`,
+    ];
+
+    const { stdout } = await exec("curl", args, { timeout: 15000 });
+    const data = JSON.parse(stdout || "null");
+    return { data, error: null };
+  } catch (err: any) {
+    return { data: null, error: { message: err.stderr || err.message || String(err) } };
+  }
+}
+
+export async function supabasePatch<T = any>(
+  table: string,
+  body: any,
+  query: string
+): Promise<{ data: T | null; error: any }> {
+  try {
+    const payload = JSON.stringify(body);
+    const { stdout } = await exec("curl", [
+      "-s",
+      "-X", "PATCH",
+      "-H", `apikey: ${anonKey}`,
+      "-H", "Content-Type: application/json",
+      "-H", "Prefer: return=representation",
+      "-d", payload,
+      `${apiBase}/${table}?${query}`,
+    ], { timeout: 15000 });
+
+    const data = JSON.parse(stdout || "null");
+    return { data, error: null };
+  } catch (err: any) {
+    return { data: null, error: { message: err.stderr || err.message || String(err) } };
+  }
+}
+
+// ── Specific DB functions ──
+
+export interface Product {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  price: number;
+  cost: number;
+  images: string[];
+  category: string;
+  tags: string[];
+  supplier: string;
+  supplierUrl: string;
+  stock: number;
+  status: "active" | "draft" | "archived";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Order {
+  id: string;
+  items: { productId: string; title: string; price: number; quantity: number }[];
+  total: number;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  shippingAddress: any;
+  status: "pending" | "placed_with_supplier" | "shipped" | "delivered" | "cancelled";
+  supplierOrderRef?: string;
+  trackingUrl?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AuditEntry {
+  id: string;
+  timestamp: string;
+  agent: string;
+  action: string;
+  details: string;
+  status: "success" | "error" | "info";
+  metadata?: Record<string, unknown>;
+}
+
+function rowToProduct(r: any): Product {
   return {
-    id: row.id,
-    title: row.title,
-    slug: row.slug,
-    description: row.description,
-    price: row.price,
-    cost: row.cost,
-    images: typeof row.images === 'string' ? JSON.parse(row.images) : row.images,
-    category: row.category,
-    tags: typeof row.tags === 'string' ? JSON.parse(row.tags) : row.tags,
-    supplier: row.supplier,
-    supplierUrl: row.supplier_url || '',
-    stock: row.stock,
-    status: row.status,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    id: r.id, title: r.title, slug: r.slug, description: r.description,
+    price: r.price, cost: r.cost,
+    images: typeof r.images === "string" ? JSON.parse(r.images) : r.images || [],
+    category: r.category,
+    tags: typeof r.tags === "string" ? JSON.parse(r.tags) : r.tags || [],
+    supplier: r.supplier, supplierUrl: r.supplier_url || "",
+    stock: r.stock, status: r.status,
+    createdAt: r.created_at, updatedAt: r.updated_at,
   };
 }
 
-function productToDb(p: Partial<Product>): any {
-  const db: any = {};
-  if (p.id !== undefined) db.id = p.id;
-  if (p.title !== undefined) db.title = p.title;
-  if (p.slug !== undefined) db.slug = p.slug;
-  if (p.description !== undefined) db.description = p.description;
-  if (p.price !== undefined) db.price = p.price;
-  if (p.cost !== undefined) db.cost = p.cost;
-  if (p.images !== undefined) db.images = JSON.stringify(p.images);
-  if (p.category !== undefined) db.category = p.category;
-  if (p.tags !== undefined) db.tags = JSON.stringify(p.tags);
-  if (p.supplier !== undefined) db.supplier = p.supplier;
-  if (p.supplierUrl !== undefined) db.supplier_url = p.supplierUrl;
-  if (p.stock !== undefined) db.stock = p.stock;
-  if (p.status !== undefined) db.status = p.status;
-  return db;
-}
-
-function rowToOrder(row: any): Order {
+function rowToOrder(r: any): Order {
   return {
-    id: row.id,
-    items: typeof row.items === 'string' ? JSON.parse(row.items) : row.items,
-    total: row.total,
-    customerName: row.customer_name || '',
-    customerEmail: row.customer_email || '',
-    customerPhone: row.customer_phone || '',
-    shippingAddress: typeof row.shipping_address === 'string' ? JSON.parse(row.shipping_address) : row.shipping_address,
-    status: row.status,
-    supplierOrderRef: row.supplier_order_ref,
-    trackingUrl: row.tracking_url,
-    notes: row.notes,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    id: r.id,
+    items: typeof r.items === "string" ? JSON.parse(r.items) : r.items || [],
+    total: r.total,
+    customerName: r.customer_name || "", customerEmail: r.customer_email || "",
+    customerPhone: r.customer_phone || "",
+    shippingAddress: typeof r.shipping_address === "string" ? JSON.parse(r.shipping_address) : r.shipping_address || {},
+    status: r.status,
+    supplierOrderRef: r.supplier_order_ref, trackingUrl: r.tracking_url, notes: r.notes,
+    createdAt: r.created_at, updatedAt: r.updated_at,
   };
 }
-
-function orderToDb(p: Partial<Order>): any {
-  const db: any = {};
-  if (p.id !== undefined) db.id = p.id;
-  if (p.items !== undefined) db.items = JSON.stringify(p.items);
-  if (p.total !== undefined) db.total = p.total;
-  if (p.customerName !== undefined) db.customer_name = p.customerName;
-  if (p.customerEmail !== undefined) db.customer_email = p.customerEmail;
-  if (p.customerPhone !== undefined) db.customer_phone = p.customerPhone;
-  if (p.shippingAddress !== undefined) db.shipping_address = JSON.stringify(p.shippingAddress);
-  if (p.status !== undefined) db.status = p.status;
-  if (p.supplierOrderRef !== undefined) db.supplier_order_ref = p.supplierOrderRef;
-  if (p.trackingUrl !== undefined) db.tracking_url = p.trackingUrl;
-  if (p.notes !== undefined) db.notes = p.notes;
-  return db;
-}
-
-function rowToAudit(row: any): AuditEntry {
-  return {
-    id: row.id,
-    timestamp: row.timestamp,
-    agent: row.agent,
-    action: row.action,
-    details: row.details,
-    status: row.status,
-    metadata: typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata,
-  };
-}
-
-// ── Product Functions ──
 
 export async function getProducts(status?: string): Promise<Product[]> {
-  let query = sb.from('products').select('*').order('created_at', { ascending: false });
-  if (status) {
-    query = query.eq('status', status);
-  }
-  const { data, error } = await query;
+  const params: Record<string, string> = { select: "*", order: "created_at.desc" };
+  if (status) params.status = `eq.${status}`;
+  const { data, error } = await supabaseGet("products", params);
   if (error) throw new Error(`getProducts: ${error.message}`);
   return (data || []).map(rowToProduct);
 }
 
 export async function getProduct(id: string): Promise<Product | null> {
-  const { data, error } = await sb.from('products').select('*').eq('id', id).single();
-  if (error) {
-    if (error.code === 'PGRST116') return null; // not found
-    throw new Error(`getProduct: ${error.message}`);
-  }
-  return rowToProduct(data);
+  const { data, error } = await supabaseGet("products", { id: `eq.${id}`, select: "*" });
+  if (error) throw new Error(`getProduct: ${error.message}`);
+  return data && data.length > 0 ? rowToProduct(data[0]) : null;
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const { data, error } = await sb.from('products').select('*').eq('slug', slug).single();
-  if (error) {
-    if (error.code === 'PGRST116') return null;
-    throw new Error(`getProductBySlug: ${error.message}`);
-  }
-  return rowToProduct(data);
+  const { data, error } = await supabaseGet("products", { slug: `eq.${slug}`, select: "*" });
+  if (error) throw new Error(`getProductBySlug: ${error.message}`);
+  return data && data.length > 0 ? rowToProduct(data[0]) : null;
 }
 
 export async function createProduct(product: Product): Promise<void> {
-  const { error } = await sb.from('products').insert(productToDb(product));
+  const { error } = await supabasePost("products", {
+    id: product.id, title: product.title, slug: product.slug,
+    description: product.description, price: product.price, cost: product.cost,
+    images: JSON.stringify(product.images), category: product.category,
+    tags: JSON.stringify(product.tags), supplier: product.supplier,
+    supplier_url: product.supplierUrl, stock: product.stock, status: product.status,
+    created_at: product.createdAt, updated_at: product.updatedAt,
+  });
   if (error) throw new Error(`createProduct: ${error.message}`);
 }
 
 export async function updateProduct(id: string, updates: Partial<Product>): Promise<void> {
-  const { error } = await sb.from('products').update(productToDb(updates)).eq('id', id);
+  const body: any = {};
+  if (updates.title !== undefined) body.title = updates.title;
+  if (updates.description !== undefined) body.description = updates.description;
+  if (updates.price !== undefined) body.price = updates.price;
+  if (updates.status !== undefined) body.status = updates.status;
+  if (updates.images !== undefined) body.images = JSON.stringify(updates.images);
+  if (updates.stock !== undefined) body.stock = updates.stock;
+  body.updated_at = new Date().toISOString();
+
+  const { error } = await supabasePatch("products", body, `id=eq.${id}`);
   if (error) throw new Error(`updateProduct: ${error.message}`);
 }
 
-// ── Order Functions ──
-
 export async function getOrders(): Promise<Order[]> {
-  const { data, error } = await sb.from('orders').select('*').order('created_at', { ascending: false });
+  const { data, error } = await supabaseGet("orders", { select: "*", order: "created_at.desc" });
   if (error) throw new Error(`getOrders: ${error.message}`);
   return (data || []).map(rowToOrder);
 }
 
 export async function getOrder(id: string): Promise<Order | null> {
-  const { data, error } = await sb.from('orders').select('*').eq('id', id).single();
-  if (error) {
-    if (error.code === 'PGRST116') return null;
-    throw new Error(`getOrder: ${error.message}`);
-  }
-  return rowToOrder(data);
+  const { data, error } = await supabaseGet("orders", { id: `eq.${id}`, select: "*" });
+  if (error) throw new Error(`getOrder: ${error.message}`);
+  return data && data.length > 0 ? rowToOrder(data[0]) : null;
 }
 
 export async function createOrder(order: Order): Promise<void> {
-  const { error } = await sb.from('orders').insert(orderToDb(order));
+  const { error } = await supabasePost("orders", {
+    id: order.id, items: JSON.stringify(order.items), total: order.total,
+    customer_name: order.customerName, customer_email: order.customerEmail,
+    customer_phone: order.customerPhone,
+    shipping_address: JSON.stringify(order.shippingAddress),
+    status: order.status, created_at: order.createdAt, updated_at: order.updatedAt,
+  });
   if (error) throw new Error(`createOrder: ${error.message}`);
 }
 
 export async function updateOrder(id: string, updates: Partial<Order>): Promise<void> {
-  const { error } = await sb.from('orders').update(orderToDb(updates)).eq('id', id);
+  const body: any = {};
+  if (updates.status !== undefined) body.status = updates.status;
+  if (updates.supplierOrderRef !== undefined) body.supplier_order_ref = updates.supplierOrderRef;
+  if (updates.trackingUrl !== undefined) body.tracking_url = updates.trackingUrl;
+  if (updates.notes !== undefined) body.notes = updates.notes;
+  body.updated_at = new Date().toISOString();
+
+  const { error } = await supabasePatch("orders", body, `id=eq.${id}`);
   if (error) throw new Error(`updateOrder: ${error.message}`);
 }
 
-// ── Audit Functions ──
-
 export async function getAuditLog(limit = 100, offset = 0): Promise<{ entries: AuditEntry[]; total: number }> {
-  const { data, error, count } = await sb
-    .from('audit_log')
-    .select('*', { count: 'exact' })
-    .order('timestamp', { ascending: false })
-    .range(offset, offset + limit - 1);
+  const { data, error } = await supabaseGet("audit_log", {
+    select: "*", order: "timestamp.desc", limit: String(limit), offset: String(offset),
+  });
   if (error) throw new Error(`getAuditLog: ${error.message}`);
-  return { entries: (data || []).map(rowToAudit), total: count || 0 };
+  const entries = (data || []).map((r: any) => ({
+    id: r.id, timestamp: r.timestamp, agent: r.agent, action: r.action,
+    details: r.details, status: r.status,
+    metadata: typeof r.metadata === "string" ? JSON.parse(r.metadata) : r.metadata,
+  }));
+  return { entries, total: entries.length };
 }
 
 export async function addAuditEntry(entry: AuditEntry): Promise<void> {
-  const { error } = await sb.from('audit_log').insert({
-    id: entry.id,
-    timestamp: entry.timestamp,
-    agent: entry.agent,
-    action: entry.action,
-    details: entry.details,
-    status: entry.status,
+  const { error } = await supabasePost("audit_log", {
+    id: entry.id, timestamp: entry.timestamp, agent: entry.agent,
+    action: entry.action, details: entry.details, status: entry.status,
     metadata: JSON.stringify(entry.metadata || {}),
   });
   if (error) throw new Error(`addAuditEntry: ${error.message}`);
 }
 
-// ── Suppliers ──
-
-export async function getSuppliers(): Promise<Supplier[]> {
-  const { data, error } = await sb.from('suppliers').select('*');
+export async function getSuppliers(): Promise<any[]> {
+  const { data, error } = await supabaseGet("suppliers", { select: "*" });
   if (error) throw new Error(`getSuppliers: ${error.message}`);
-  return (data || []).map((row: any) => ({
-    id: row.id,
-    name: row.name,
-    platform: row.platform,
-    baseUrl: row.base_url || '',
-    notes: row.notes || '',
-    minMargin: row.min_margin,
-    avgShippingDays: row.avg_shipping_days,
-  }));
+  return data || [];
 }
 
-// ── Settings ──
-
 export async function getSetting(key: string): Promise<string | undefined> {
-  const { data, error } = await sb.from('settings').select('value').eq('key', key).single();
-  if (error) {
-    if (error.code === 'PGRST116') return undefined;
-    throw new Error(`getSetting: ${error.message}`);
-  }
-  return data?.value;
+  const { data, error } = await supabaseGet("settings", { key: `eq.${key}`, select: "value" });
+  if (error) throw new Error(`getSetting: ${error.message}`);
+  return data && data.length > 0 ? data[0].value : undefined;
 }
 
 export async function setSetting(key: string, value: string): Promise<void> {
-  const { error } = await sb.from('settings').upsert({ key, value }, { onConflict: 'key' });
+  const { error } = await supabasePost("settings", { key, value });
   if (error) throw new Error(`setSetting: ${error.message}`);
 }
