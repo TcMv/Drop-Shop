@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   FiLock, FiCheck, FiArrowLeft, FiShield,
-  FiTruck, FiCreditCard, FiZap
+  FiTruck, FiCreditCard, FiZap, FiShoppingCart
 } from 'react-icons/fi';
 import Link from 'next/link';
 
@@ -18,8 +18,7 @@ export default function CheckoutPage() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [mounted, setMounted] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const [done, setDone] = useState(false);
-  const [orderId, setOrderId] = useState('');
+  const [error, setError] = useState('');
   const [form, setForm] = useState({
     name: '', email: '', phone: '',
     address: '', city: '', state: '', postcode: ''
@@ -39,16 +38,24 @@ export default function CheckoutPage() {
   const total = subtotal + shipping;
   const valid = form.name && form.email && form.address && form.city;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!valid || processing) return;
     setProcessing(true);
+    setError('');
+
     try {
-      const r = await fetch('/api/orders', {
+      const res = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items, total,
+          items: items.map(i => ({
+            productId: i.productId,
+            title: i.title,
+            price: i.price,
+            quantity: i.quantity,
+            image: i.image,
+          })),
           customerName: form.name,
           customerEmail: form.email,
           customerPhone: form.phone,
@@ -56,64 +63,28 @@ export default function CheckoutPage() {
             address: form.address,
             city: form.city,
             state: form.state,
-            postcode: form.postcode
-          }
-        })
+            postcode: form.postcode,
+          },
+        }),
       });
-      const d = await r.json();
-      if (d.id) {
-        setOrderId(d.id);
-        setDone(true);
+
+      const data = await res.json();
+      if (data.url) {
+        // Clear cart and redirect to Stripe Checkout
         localStorage.removeItem('cart');
         window.dispatchEvent(new Event('cart-updated'));
+        window.location.href = data.url;
+      } else {
+        setError(data.error || 'Something went wrong');
       }
-    } catch {}
+    } catch (err: any) {
+      setError(err.message || 'Failed to connect to payment provider');
+    }
+
     setProcessing(false);
   };
 
   if (!mounted) return null;
-
-  if (done) return (
-    <div className="min-h-screen flex items-center justify-center pt-20">
-      <div className="text-center max-w-md mx-auto px-4">
-        <div className="w-24 h-24 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-6 border border-emerald-500/20 shadow-lg shadow-emerald-500/10">
-          <FiCheck className="w-10 h-10 text-emerald-400" />
-        </div>
-        <h1 className="text-3xl font-display font-bold text-[var(--color-text-primary)] mb-2">
-          Order Confirmed! 🎉
-        </h1>
-        <p className="text-[var(--color-text-secondary)] mb-2">
-          Your order has been placed successfully.
-        </p>
-        <p className="text-sm text-[var(--color-text-tertiary)] mb-8">
-          Order ID: <span className="text-[var(--color-brand-400)] font-mono">{orderId.slice(0, 8)}</span>
-        </p>
-        <div className="p-5 rounded-2xl bg-[var(--color-surface-raised)] border border-[var(--color-border-default)] mb-8 text-sm space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
-              <FiCheck className="w-4 h-4 text-emerald-400" />
-            </div>
-            <span className="text-[var(--color-text-secondary)]">Payment confirmed</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[rgba(251,191,36,0.1)] flex items-center justify-center">
-              <FiTruck className="w-4 h-4 text-[var(--color-brand-400)]" />
-            </div>
-            <span className="text-[var(--color-text-secondary)]">Processing for shipping</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[rgba(251,191,36,0.1)] flex items-center justify-center">
-              <FiZap className="w-4 h-4 text-[var(--color-brand-400)]" />
-            </div>
-            <span className="text-[var(--color-text-secondary)]">AI agent notified — tracking soon</span>
-          </div>
-        </div>
-        <Link href="/" className="btn-primary inline-flex items-center gap-2">
-          <span>Continue Shopping</span>
-        </Link>
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen pt-24 pb-16">
@@ -133,11 +104,11 @@ export default function CheckoutPage() {
               Checkout
             </h1>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleCheckout} className="space-y-6">
               {/* Shipping Info */}
               <div className="p-6 sm:p-8 rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)]">
                 <h2 className="font-display font-semibold text-lg text-[var(--color-text-primary)] mb-6 flex items-center gap-2">
-                  <FiCreditCard className="w-5 h-5 text-[var(--color-brand-400)]" />
+                  <FiTruck className="w-5 h-5 text-[var(--color-brand-400)]" />
                   Shipping Information
                 </h2>
 
@@ -172,14 +143,14 @@ export default function CheckoutPage() {
 
                   <div>
                     <label className="block text-xs text-[var(--color-text-tertiary)] mb-1.5 font-medium uppercase tracking-wider">
-                      Phone
+                      Phone (optional)
                     </label>
                     <input
                       type="tel"
                       value={form.phone}
                       onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                       className="input-field"
-                      placeholder="+1 (555) 000-0000"
+                      placeholder="0400 000 000"
                     />
                   </div>
 
@@ -240,19 +211,57 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
+              {/* Payment Methods Preview */}
+              <div className="p-6 sm:p-8 rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)]">
+                <h2 className="font-display font-semibold text-lg text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
+                  <FiCreditCard className="w-5 h-5 text-[var(--color-brand-400)]" />
+                  Payment Methods
+                </h2>
+                <p className="text-sm text-[var(--color-text-secondary)] mb-4">
+                  You'll be redirected to our secure checkout where you can pay with:
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <div className="px-3 py-2 rounded-lg bg-[var(--color-surface-elevated)] border border-[var(--color-border-default)] text-sm text-[var(--color-text-primary)] flex items-center gap-2">
+                    <FiCreditCard className="w-4 h-4 text-blue-400" />
+                    Credit Card
+                  </div>
+                  <div className="px-3 py-2 rounded-lg bg-[var(--color-surface-elevated)] border border-[var(--color-border-default)] text-sm text-[var(--color-text-primary)]">
+                    💳 Afterpay
+                  </div>
+                  <div className="px-3 py-2 rounded-lg bg-[var(--color-surface-elevated)] border border-[var(--color-border-default)] text-sm text-[var(--color-text-primary)]">
+                    🟣 Zip Pay
+                  </div>
+                  <div className="px-3 py-2 rounded-lg bg-[var(--color-surface-elevated)] border border-[var(--color-border-default)] text-sm text-[var(--color-text-primary)]">
+                    🍎 Apple Pay
+                  </div>
+                  <div className="px-3 py-2 rounded-lg bg-[var(--color-surface-elevated)] border border-[var(--color-border-default)] text-sm text-[var(--color-text-primary)]">
+                    💳 Google Pay
+                  </div>
+                </div>
+              </div>
+
+              {/* Error */}
+              {error && (
+                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                  {error}
+                </div>
+              )}
+
               {/* Submit */}
               <button
                 type="submit"
                 disabled={!valid || processing}
-                className="btn-primary w-full flex items-center justify-center gap-2 py-4 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+                className="btn-primary w-full flex items-center justify-center gap-2 py-4 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
               >
                 <FiLock className="w-4 h-4" />
-                <span>{processing ? 'Processing...' : `Pay $${total.toFixed(2)}`}</span>
+                <span>
+                  {processing ? 'Redirecting to Payment...' : `Pay $${total.toFixed(2)} AUD`}
+                </span>
               </button>
 
               <p className="text-center text-xs text-[var(--color-text-tertiary)] flex items-center justify-center gap-1">
                 <FiShield className="w-3 h-3 text-[var(--color-brand-400)]" />
-                Secure checkout — your info is encrypted
+                Secure checkout — powered by Stripe. Afterpay, Zip, and cards accepted.
               </p>
             </form>
           </div>
@@ -311,6 +320,10 @@ export default function CheckoutPage() {
                     <span className="font-semibold text-[var(--color-text-primary)]">Total</span>
                     <span className="font-bold text-[var(--color-text-primary)]">${total.toFixed(2)}</span>
                   </div>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1 flex items-center gap-1">
+                    <FiZap className="w-3 h-3 text-[var(--color-brand-400)]" />
+                    Or 4 interest-free payments of ${(total / 4).toFixed(2)} with Afterpay
+                  </p>
                 </div>
               </div>
             </div>
