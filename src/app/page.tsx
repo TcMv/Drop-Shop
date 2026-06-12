@@ -1,32 +1,17 @@
 import Link from 'next/link';
 import { FiShoppingBag, FiTrendingUp, FiTruck } from 'react-icons/fi';
-
-interface Product {
-  id: string;
-  title: string;
-  slug: string;
-  description: string;
-  price: number;
-  images: string[];
-  category: string;
-}
+import { getProducts, Product } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-async function getProducts(): Promise<Product[]> {
-  try {
-    // Relative URL — Next.js routes it internally during SSR
-    const res = await fetch('/api/products', { cache: 'no-store' });
-    if (!res.ok) return [];
-    return res.json();
-  } catch {
-    return [];
-  }
-}
-
 export default async function HomePage() {
-  const products = await getProducts();
-  
+  let products: Product[] = [];
+  try {
+    products = await getProducts('active');
+  } catch {
+    // Products unavailable — show empty state
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="text-center mb-12 pt-8">
@@ -71,9 +56,7 @@ export default async function HomePage() {
                     {product.title}
                   </h3>
                   <div className="mt-2 flex items-center justify-between">
-                    <span className="text-xl font-bold text-blue-400">
-                      ${product.price.toFixed(2)}
-                    </span>
+                    <span className="text-xl font-bold text-blue-400">${product.price.toFixed(2)}</span>
                     <span className="text-xs text-gray-600">Free Shipping</span>
                   </div>
                 </div>
