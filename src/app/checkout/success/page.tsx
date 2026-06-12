@@ -1,11 +1,12 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { FiCheck, FiTruck, FiZap, FiShoppingBag, FiPackage } from 'react-icons/fi';
 
-export default function SuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const [mounted, setMounted] = useState(false);
@@ -85,5 +86,20 @@ export default function SuccessPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center pt-20">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-full border-2 border-[var(--color-brand-400)] border-t-transparent animate-spin mx-auto mb-4" />
+          <p className="text-[var(--color-text-secondary)]">Loading confirmation...</p>
+        </div>
+      </div>
+    }>
+      <SuccessContent />
+    </Suspense>
   );
 }
