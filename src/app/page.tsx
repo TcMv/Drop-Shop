@@ -11,9 +11,15 @@ interface Product {
   category: string;
 }
 
+// Force dynamic rendering so the API call works at request time
+export const dynamic = 'force-dynamic';
+
 async function getProducts(): Promise<Product[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || ''}/api/products`, { cache: 'no-store' });
+    const base = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL || process.env.NEXT_PUBLIC_SITE_URL}`
+      : '';
+    const res = await fetch(`${base}/api/products`, { cache: 'no-store' });
     if (!res.ok) return [];
     return res.json();
   } catch {
