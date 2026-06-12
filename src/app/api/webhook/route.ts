@@ -11,7 +11,6 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const signature = request.headers.get('stripe-signature') || '';
-
   let event;
   try {
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -104,10 +103,3 @@ async function handleCompletedCheckout(session: any) {
     status: 'success',
   });
 }
-
-// Stripe requires the raw body for signature verification
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
