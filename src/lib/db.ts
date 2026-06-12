@@ -1,88 +1,66 @@
-import { execFile } from "child_process";
-import { promisify } from "util";
-
-const exec = promisify(execFile);
-
+/**
+ * Supabase DB layer using native Node.js fetch.
+ * No `curl` dependency — works in Vercel serverless runtime.
+ */
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const apiBase = supabaseUrl.replace(/\/$/, "") + "/rest/v1";
 
-/**
- * Supabase client using curl (Node.js native fetch/TLS has fingerprinting
- * issues with Cloudflare in front of Supabase REST API).
- */
-export async function supabaseGet<T = any>(
+async function request<T = any>(
+  method: string,
   table: string,
-  params: Record<string, string> = {},
-  options: { count?: "exact" } = {}
-): Promise<{ data: T[] | null; count: number | null; error: any }> {
+  options: { query?: Record<string, string>; body?: any; extraHeaders?: Record<string, string> } = {}
+): Promise<{ data: T | null; count: number | null; error: any }> {
   try {
-    const query = new URLSearchParams(params).toString();
-    const url = `${apiBase}/${table}${query ? "?" + query : ""}`;
+    const params = options.query ? "?" + new URLSearchParams(options.query).toString() : "";
+    const url = `${apiBase}/${table}${params}`;
 
-    const { stdout } = await exec("curl", [
-      "-s",
-      "-H", `apikey: ${anonKey}`,
-      url,
-    ], { timeout: 15000 });
+    const headers: Record<string, string> = {
+      apikey: anonKey,
+      ...options.extraHeaders,
+    } as Record<string, string>;
 
-    const data = JSON.parse(stdout);
-    return { data: Array.isArray(data) ? data as T[] : null, count: null, error: null };
+    if (options.body) {
+      headers["Content-Type"] = "application/json";
+    }
+
+    const res = await fetch(url, {
+      method,
+      headers,
+      body: options.body ? JSON.stringify(options.body) : undefined,
+    });
+
+    const countHeader = res.headers.get("content-range");
+    const count = countHeader ? parseInt(countHeader.split("/")[1], 10) : null;
+
+    const text = await res.text();
+    const data = text ? JSON.parse(text) : null;
+
+    if (!res.ok) {
+      return { data: null, count: null, error: { message: `HTTP ${res.status}: ${text.slice(0, 200)}` } };
+    }
+
+    return { data, count, error: null };
   } catch (err: any) {
-    return { data: null, count: null, error: { message: err.stderr || err.message || String(err) } };
+    return { data: null, count: null, error: { message: err.message || String(err) } };
   }
 }
 
-export async function supabasePost<T = any>(
-  table: string,
-  body: any,
-  headers: Record<string, string> = {}
-): Promise<{ data: T | null; error: any }> {
-  try {
-    const payload = JSON.stringify(body);
-    const args = [
-      "-s",
-      "-X", "POST",
-      "-H", `apikey: ${anonKey}`,
-      "-H", "Content-Type: application/json",
-      ...Object.entries(headers).flatMap(([k, v]) => ["-H", `${k}: ${v}`]),
-      "-d", payload,
-      `${apiBase}/${table}`,
-    ];
-
-    const { stdout } = await exec("curl", args, { timeout: 15000 });
-    const data = JSON.parse(stdout || "null");
-    return { data, error: null };
-  } catch (err: any) {
-    return { data: null, error: { message: err.stderr || err.message || String(err) } };
-  }
+async function get<T = any>(table: string, query: Record<string, string> = {}): Promise<{ data: T[] | null; count: number | null; error: any }> {
+  return request("GET", table, { query });
 }
 
-export async function supabasePatch<T = any>(
-  table: string,
-  body: any,
-  query: string
-): Promise<{ data: T | null; error: any }> {
-  try {
-    const payload = JSON.stringify(body);
-    const { stdout } = await exec("curl", [
-      "-s",
-      "-X", "PATCH",
-      "-H", `apikey: ${anonKey}`,
-      "-H", "Content-Type: application/json",
-      "-H", "Prefer: return=representation",
-      "-d", payload,
-      `${apiBase}/${table}?${query}`,
-    ], { timeout: 15000 });
-
-    const data = JSON.parse(stdout || "null");
-    return { data, error: null };
-  } catch (err: any) {
-    return { data: null, error: { message: err.stderr || err.message || String(err) } };
-  }
+async function post<T = any>(table: string, body: any, extraHeaders?: Record<string, string>): Promise<{ data: T | null; error: any }> {
+  return request("POST", table, { body, extraHeaders });
 }
 
-// ── Specific DB functions ──
+async function patch<T = any>(table: string, body: any, query: string): Promise<{ data: T | null; error: any }> {
+  return request("PATCH", table, {
+    body,
+    query: Object.fromEntries(new URLSearchParams(query)),
+    extraHeaders: { Prefer: "return=representation" },
+  });
+}
 
 export interface Product {
   id: string;
@@ -156,27 +134,27 @@ function rowToOrder(r: any): Order {
 }
 
 export async function getProducts(status?: string): Promise<Product[]> {
-  const params: Record<string, string> = { select: "*", order: "created_at.desc" };
-  if (status) params.status = `eq.${status}`;
-  const { data, error } = await supabaseGet("products", params);
+  const query: Record<string, string> = { select: "*", order: "created_at.desc" };
+  if (status) query.status = `eq.${status}`;
+  const { data, error } = await get("products", query);
   if (error) throw new Error(`getProducts: ${error.message}`);
   return (data || []).map(rowToProduct);
 }
 
 export async function getProduct(id: string): Promise<Product | null> {
-  const { data, error } = await supabaseGet("products", { id: `eq.${id}`, select: "*" });
+  const { data, error } = await get("products", { id: `eq.${id}`, select: "*" });
   if (error) throw new Error(`getProduct: ${error.message}`);
   return data && data.length > 0 ? rowToProduct(data[0]) : null;
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const { data, error } = await supabaseGet("products", { slug: `eq.${slug}`, select: "*" });
+  const { data, error } = await get("products", { slug: `eq.${slug}`, select: "*" });
   if (error) throw new Error(`getProductBySlug: ${error.message}`);
   return data && data.length > 0 ? rowToProduct(data[0]) : null;
 }
 
 export async function createProduct(product: Product): Promise<void> {
-  const { error } = await supabasePost("products", {
+  const { error } = await post("products", {
     id: product.id, title: product.title, slug: product.slug,
     description: product.description, price: product.price, cost: product.cost,
     images: JSON.stringify(product.images), category: product.category,
@@ -196,25 +174,24 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
   if (updates.images !== undefined) body.images = JSON.stringify(updates.images);
   if (updates.stock !== undefined) body.stock = updates.stock;
   body.updated_at = new Date().toISOString();
-
-  const { error } = await supabasePatch("products", body, `id=eq.${id}`);
+  const { error } = await patch("products", body, `id=eq.${id}`);
   if (error) throw new Error(`updateProduct: ${error.message}`);
 }
 
 export async function getOrders(): Promise<Order[]> {
-  const { data, error } = await supabaseGet("orders", { select: "*", order: "created_at.desc" });
+  const { data, error } = await get("orders", { select: "*", order: "created_at.desc" });
   if (error) throw new Error(`getOrders: ${error.message}`);
   return (data || []).map(rowToOrder);
 }
 
 export async function getOrder(id: string): Promise<Order | null> {
-  const { data, error } = await supabaseGet("orders", { id: `eq.${id}`, select: "*" });
+  const { data, error } = await get("orders", { id: `eq.${id}`, select: "*" });
   if (error) throw new Error(`getOrder: ${error.message}`);
   return data && data.length > 0 ? rowToOrder(data[0]) : null;
 }
 
 export async function createOrder(order: Order): Promise<void> {
-  const { error } = await supabasePost("orders", {
+  const { error } = await post("orders", {
     id: order.id, items: JSON.stringify(order.items), total: order.total,
     customer_name: order.customerName, customer_email: order.customerEmail,
     customer_phone: order.customerPhone,
@@ -231,13 +208,12 @@ export async function updateOrder(id: string, updates: Partial<Order>): Promise<
   if (updates.trackingUrl !== undefined) body.tracking_url = updates.trackingUrl;
   if (updates.notes !== undefined) body.notes = updates.notes;
   body.updated_at = new Date().toISOString();
-
-  const { error } = await supabasePatch("orders", body, `id=eq.${id}`);
+  const { error } = await patch("orders", body, `id=eq.${id}`);
   if (error) throw new Error(`updateOrder: ${error.message}`);
 }
 
 export async function getAuditLog(limit = 100, offset = 0): Promise<{ entries: AuditEntry[]; total: number }> {
-  const { data, error } = await supabaseGet("audit_log", {
+  const { data, error } = await get("audit_log", {
     select: "*", order: "timestamp.desc", limit: String(limit), offset: String(offset),
   });
   if (error) throw new Error(`getAuditLog: ${error.message}`);
@@ -250,7 +226,7 @@ export async function getAuditLog(limit = 100, offset = 0): Promise<{ entries: A
 }
 
 export async function addAuditEntry(entry: AuditEntry): Promise<void> {
-  const { error } = await supabasePost("audit_log", {
+  const { error } = await post("audit_log", {
     id: entry.id, timestamp: entry.timestamp, agent: entry.agent,
     action: entry.action, details: entry.details, status: entry.status,
     metadata: JSON.stringify(entry.metadata || {}),
@@ -259,18 +235,18 @@ export async function addAuditEntry(entry: AuditEntry): Promise<void> {
 }
 
 export async function getSuppliers(): Promise<any[]> {
-  const { data, error } = await supabaseGet("suppliers", { select: "*" });
+  const { data, error } = await get("suppliers", { select: "*" });
   if (error) throw new Error(`getSuppliers: ${error.message}`);
   return data || [];
 }
 
 export async function getSetting(key: string): Promise<string | undefined> {
-  const { data, error } = await supabaseGet("settings", { key: `eq.${key}`, select: "value" });
+  const { data, error } = await get("settings", { key: `eq.${key}`, select: "value" });
   if (error) throw new Error(`getSetting: ${error.message}`);
   return data && data.length > 0 ? data[0].value : undefined;
 }
 
 export async function setSetting(key: string, value: string): Promise<void> {
-  const { error } = await supabasePost("settings", { key, value });
+  const { error } = await post("settings", { key, value });
   if (error) throw new Error(`setSetting: ${error.message}`);
 }
