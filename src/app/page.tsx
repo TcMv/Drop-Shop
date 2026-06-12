@@ -11,15 +11,12 @@ interface Product {
   category: string;
 }
 
-// Dynamic page — fetch runs at request time, not build time
 export const dynamic = 'force-dynamic';
 
 async function getProducts(): Promise<Product[]> {
   try {
-    const res = await fetch('http://localhost:3000/api/products', {
-      cache: 'no-store',
-      // Next.js intercepts localhost fetches and routes them internally
-    });
+    // Relative URL — Next.js routes it internally during SSR
+    const res = await fetch('/api/products', { cache: 'no-store' });
     if (!res.ok) return [];
     return res.json();
   } catch {
