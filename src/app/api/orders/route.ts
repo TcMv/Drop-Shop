@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { v4 as uuid } from 'uuid';
 import { getOrders, getOrder, createOrder, updateOrder } from '@/lib/db';
-import { addAuditEntry } from '@/lib/agents/audit';
+import { logAudit } from '@/lib/agents/audit';
 import type { Order } from '@/lib/types';
 
 export async function GET(request: NextRequest) {
@@ -42,16 +41,7 @@ export async function POST(request: NextRequest) {
     };
     
     await createOrder(order);
-    
-    await addAuditEntry({
-      id: uuid(),
-      timestamp: new Date().toISOString(),
-      agent: 'order-api',
-      action: 'order_created',
-      details: `Order ${order.id} for $${total}`,
-      status: 'success',
-      metadata: { orderId: order.id, total },
-    });
+    await logAudit('order-api', 'order_created', `Order ${order.id} for $${total}`, 'success', { orderId: order.id, total });
     
     return NextResponse.json({ success: true, order }, { status: 201 });
   } catch (err) {
