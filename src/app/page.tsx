@@ -11,15 +11,15 @@ interface Product {
   category: string;
 }
 
-// Force dynamic rendering so the API call works at request time
+// Dynamic page — fetch runs at request time, not build time
 export const dynamic = 'force-dynamic';
 
 async function getProducts(): Promise<Product[]> {
   try {
-    const base = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL || process.env.NEXT_PUBLIC_SITE_URL}`
-      : '';
-    const res = await fetch(`${base}/api/products`, { cache: 'no-store' });
+    const res = await fetch('http://localhost:3000/api/products', {
+      cache: 'no-store',
+      // Next.js intercepts localhost fetches and routes them internally
+    });
     if (!res.ok) return [];
     return res.json();
   } catch {
@@ -32,7 +32,6 @@ export default async function HomePage() {
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Hero */}
       <div className="text-center mb-12 pt-8">
         <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
           Welcome to the Store
@@ -47,7 +46,6 @@ export default async function HomePage() {
         </div>
       </div>
       
-      {/* Product Grid */}
       {products.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-gray-500 text-lg">No products available yet.</p>
