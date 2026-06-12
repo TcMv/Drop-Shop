@@ -3,12 +3,16 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import {
-  FiShoppingBag, FiTrendingUp, FiTruck, FiStar, FiShield,
+import { FiShoppingBag, FiTrendingUp, FiTruck, FiStar, FiShield,
   FiClock, FiZap, FiArrowRight, FiCheck, FiCpu, FiPackage,
   FiBarChart2, FiGlobe, FiDollarSign, FiActivity
 } from 'react-icons/fi';
-import { getProducts, Product } from '@/lib/db';
+
+interface Product {
+  id: string; title: string; slug: string; description: string;
+  price: number; cost: number; images: string[]; category: string;
+  tags: string[]; stock: number; status: string;
+}
 
 const CATEGORIES = [
   { name: 'Electronics', icon: '🔌', desc: 'Gadgets & gear', color: 'from-amber-500/10 to-amber-700/5' },
