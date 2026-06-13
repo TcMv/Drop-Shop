@@ -7,9 +7,10 @@ import {
   FiTruck, FiCreditCard, FiZap, FiShoppingCart
 } from 'react-icons/fi';
 import Link from 'next/link';
+import { formatAUD, gstComponent, shippingFor, instalment, AU_STATES } from '@/lib/format';
 
 interface CartItem {
-  productId: string; title: string; price: number;
+  productId: string; title: string; slug?: string; price: number;
   quantity: number; image: string;
 }
 
@@ -34,9 +35,10 @@ export default function CheckoutPage() {
   }, [router]);
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = subtotal > 50 ? 0 : 5.99;
+  const shipping = shippingFor(subtotal);
   const total = subtotal + shipping;
-  const valid = form.name && form.email && form.address && form.city;
+  const postcodeValid = !form.postcode || /^\d{4}$/.test(form.postcode);
+  const valid = form.name && form.email && form.address && form.city && postcodeValid;
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,13 +189,14 @@ export default function CheckoutPage() {
                       <label className="block text-xs text-[var(--color-text-tertiary)] mb-1.5 font-medium uppercase tracking-wider">
                         State
                       </label>
-                      <input
-                        type="text"
+                      <select
                         value={form.state}
                         onChange={e => setForm(f => ({ ...f, state: e.target.value }))}
                         className="input-field"
-                        placeholder="NSW"
-                      />
+                      >
+                        <option value="">Select...</option>
+                        {AU_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
                     </div>
                     <div>
                       <label className="block text-xs text-[var(--color-text-tertiary)] mb-1.5 font-medium uppercase tracking-wider">
@@ -201,11 +204,16 @@ export default function CheckoutPage() {
                       </label>
                       <input
                         type="text"
+                        inputMode="numeric"
+                        maxLength={4}
                         value={form.postcode}
-                        onChange={e => setForm(f => ({ ...f, postcode: e.target.value }))}
+                        onChange={e => setForm(f => ({ ...f, postcode: e.target.value.replace(/\D/g, '') }))}
                         className="input-field"
                         placeholder="2000"
                       />
+                      {!postcodeValid && (
+                        <p className="text-xs text-red-400 mt-1">Enter a 4-digit Australian postcode</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -255,7 +263,7 @@ export default function CheckoutPage() {
               >
                 <FiLock className="w-4 h-4" />
                 <span>
-                  {processing ? 'Redirecting to Payment...' : `Pay $${total.toFixed(2)} AUD`}
+                  {processing ? 'Redirecting to Payment...' : `Pay ${formatAUD(total)} AUD`}
                 </span>
               </button>
 
@@ -291,7 +299,7 @@ export default function CheckoutPage() {
                         Qty: {item.quantity}
                       </p>
                       <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        {formatAUD(item.price * item.quantity)}
                       </p>
                     </div>
                   </div>
@@ -301,28 +309,31 @@ export default function CheckoutPage() {
               <div className="border-t border-[var(--color-border-default)] pt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-[var(--color-text-tertiary)]">Subtotal</span>
-                  <span className="text-[var(--color-text-primary)]">${subtotal.toFixed(2)}</span>
+                  <span className="text-[var(--color-text-primary)]">{formatAUD(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[var(--color-text-tertiary)]">Shipping</span>
                   <span className={shipping === 0 ? 'text-emerald-400 font-medium' : 'text-[var(--color-text-primary)]'}>
-                    {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
+                    {shipping === 0 ? 'Free' : formatAUD(shipping)}
                   </span>
                 </div>
                 {shipping > 0 && (
                   <p className="text-xs text-[var(--color-text-tertiary)] flex items-center gap-1">
                     <FiTruck className="w-3 h-3 text-[var(--color-brand-400)]" />
-                    Free on orders $50+
+                    Free Australia-wide on orders $50+
                   </p>
                 )}
                 <div className="border-t border-[var(--color-border-default)] pt-3 mt-3">
                   <div className="flex justify-between text-lg">
                     <span className="font-semibold text-[var(--color-text-primary)]">Total</span>
-                    <span className="font-bold text-[var(--color-text-primary)]">${total.toFixed(2)}</span>
+                    <span className="font-bold text-[var(--color-text-primary)]">{formatAUD(total)}</span>
                   </div>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
+                    Includes {formatAUD(gstComponent(total))} GST
+                  </p>
                   <p className="text-xs text-[var(--color-text-tertiary)] mt-1 flex items-center gap-1">
                     <FiZap className="w-3 h-3 text-[var(--color-brand-400)]" />
-                    Or 4 interest-free payments of ${(total / 4).toFixed(2)} with Afterpay
+                    Or 4 interest-free payments of {formatAUD(instalment(total))} with Afterpay or Zip
                   </p>
                 </div>
               </div>

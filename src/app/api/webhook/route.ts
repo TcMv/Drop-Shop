@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-// Simple Supabase client for webhook — no curl wrapper needed in Edge
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Lazy init — env vars are not evaluated at module load time, so builds
+// without Supabase credentials don't crash during page-data collection.
+function getSupabase() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -85,6 +87,8 @@ async function handleCompletedCheckout(session: any) {
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
+
+  const supabase = getSupabase();
 
   const { error } = await supabase.from('orders').upsert(order, { onConflict: 'id' });
   if (error) {

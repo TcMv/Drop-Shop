@@ -6,9 +6,10 @@ import {
   FiTrash2, FiPlus, FiMinus, FiShoppingCart,
   FiArrowLeft, FiShield, FiTruck, FiZap
 } from 'react-icons/fi';
+import { formatAUD, gstComponent, shippingFor, instalment, FREE_SHIPPING_THRESHOLD } from '@/lib/format';
 
 interface CartItem {
-  productId: string; title: string; price: number;
+  productId: string; title: string; slug?: string; price: number;
   quantity: number; image: string;
 }
 
@@ -49,8 +50,9 @@ export default function CartPage() {
   }
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = subtotal > 50 ? 0 : 5.99;
+  const shipping = shippingFor(subtotal);
   const total = subtotal + shipping;
+  const awayFromFree = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
 
   if (!mounted) return null;
 
@@ -91,12 +93,31 @@ export default function CartPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
+              {/* Free shipping progress */}
+              <div className="p-4 rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)]">
+                {awayFromFree > 0 ? (
+                  <p className="text-sm text-[var(--color-text-secondary)] mb-2">
+                    🚚 Add <strong className="text-[var(--color-brand-400)]">{formatAUD(awayFromFree)}</strong> more for <strong className="text-[var(--color-text-primary)]">free shipping</strong> Australia-wide
+                  </p>
+                ) : (
+                  <p className="text-sm text-emerald-400 font-medium mb-2">
+                    🎉 You&apos;ve unlocked free shipping Australia-wide!
+                  </p>
+                )}
+                <div className="h-1.5 rounded-full bg-[var(--color-surface-raised)] overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-500"
+                    style={{ width: `${Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100)}%` }}
+                  />
+                </div>
+              </div>
+
               {items.map(item => (
                 <div
                   key={item.productId}
                   className="flex gap-4 p-4 rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] hover:border-[var(--color-border-hover)] transition-all group"
                 >
-                  <Link href={`/products/${item.productId}`} className="shrink-0">
+                  <Link href={item.slug ? `/products/${item.slug}` : '/'} className="shrink-0">
                     <div className="w-24 h-24 rounded-xl overflow-hidden bg-gradient-to-br from-[var(--color-surface-elevated)] to-[var(--color-surface-card)]">
                       <img
                         src={item.image || '/placeholder.png'}
@@ -107,13 +128,13 @@ export default function CartPage() {
                   </Link>
 
                   <div className="flex-1 min-w-0">
-                    <Link href={`/products/${item.productId}`}>
+                    <Link href={item.slug ? `/products/${item.slug}` : '/'}>
                       <h3 className="font-medium text-sm text-[var(--color-text-primary)] hover:text-[var(--color-brand-400)] transition-colors line-clamp-1">
                         {item.title}
                       </h3>
                     </Link>
                     <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
-                      ${item.price.toFixed(2)}
+                      {formatAUD(item.price)}
                     </p>
 
                     <div className="flex items-center justify-between mt-3">
@@ -152,7 +173,7 @@ export default function CartPage() {
                   <FiZap className="w-4 h-4 text-[var(--color-brand-400)]" />
                 </div>
                 <p className="text-xs text-[var(--color-text-tertiary)]">
-                  All items are AI-sourced and quality-checked. Free shipping on orders over $50.
+                  All items are AI-sourced and quality-checked. Prices in AUD inc. GST — free shipping Australia-wide on orders over $50.
                 </p>
               </div>
             </div>
@@ -168,28 +189,35 @@ export default function CartPage() {
                   <div className="flex justify-between">
                     <span className="text-[var(--color-text-tertiary)]">Subtotal</span>
                     <span className="font-medium text-[var(--color-text-primary)]">
-                      ${subtotal.toFixed(2)}
+                      {formatAUD(subtotal)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[var(--color-text-tertiary)]">Shipping</span>
                     <span className={shipping === 0 ? 'text-emerald-400 font-medium' : 'text-[var(--color-text-primary)]'}>
-                      {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
+                      {shipping === 0 ? 'Free' : formatAUD(shipping)}
                     </span>
                   </div>
                   {shipping > 0 && (
                     <p className="text-xs text-[var(--color-text-tertiary)] flex items-center gap-1">
                       <FiTruck className="w-3 h-3 text-[var(--color-brand-400)]" />
-                      Free shipping on orders over $50
+                      Free shipping Australia-wide on orders over $50
                     </p>
                   )}
                   <div className="border-t border-[var(--color-border-default)] pt-3 mt-3">
                     <div className="flex justify-between text-lg">
                       <span className="font-semibold text-[var(--color-text-primary)]">Total</span>
                       <span className="font-bold text-[var(--color-text-primary)]">
-                        ${total.toFixed(2)}
+                        {formatAUD(total)}
                       </span>
                     </div>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mt-1.5">
+                      Includes {formatAUD(gstComponent(total))} GST
+                    </p>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mt-1 flex items-center gap-1">
+                      <FiZap className="w-3 h-3 text-[var(--color-brand-400)]" />
+                      Or 4 × {formatAUD(instalment(total))} with Afterpay or Zip
+                    </p>
                   </div>
                 </div>
 

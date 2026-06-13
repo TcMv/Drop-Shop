@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { createClient } from '@supabase/supabase-js';
+import { shippingFor, EXPRESS_SHIPPING } from '@/lib/format';
 
-// Ensure environment variables are loaded
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://drop-shop-plum.vercel.app';
 
 interface CartItem {
@@ -37,10 +34,8 @@ export async function POST(request: NextRequest) {
       quantity: item.quantity,
     }));
 
-    // Calculate total for metadata
     const total = items.reduce((s: number, i: CartItem) => s + i.price * i.quantity, 0);
-    const shipping = total > 50 ? 0 : 5.99;
-    const grandTotal = total + shipping;
+    const shipping = shippingFor(total);
 
     // Create a Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
@@ -60,10 +55,21 @@ export async function POST(request: NextRequest) {
           shipping_rate_data: {
             type: 'fixed_amount',
             fixed_amount: { amount: Math.round(shipping * 100), currency: 'aud' },
-            display_name: shipping === 0 ? 'Free Shipping' : 'Standard Shipping',
+            display_name: shipping === 0 ? 'Free Standard Shipping (Australia-wide)' : 'Standard Shipping',
             delivery_estimate: {
               minimum: { unit: 'business_day', value: 5 },
               maximum: { unit: 'business_day', value: 14 },
+            },
+          },
+        },
+        {
+          shipping_rate_data: {
+            type: 'fixed_amount',
+            fixed_amount: { amount: Math.round(EXPRESS_SHIPPING * 100), currency: 'aud' },
+            display_name: 'Express Shipping',
+            delivery_estimate: {
+              minimum: { unit: 'business_day', value: 3 },
+              maximum: { unit: 'business_day', value: 7 },
             },
           },
         },
