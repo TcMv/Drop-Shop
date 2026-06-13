@@ -17,14 +17,14 @@ export async function processPendingOrders(): Promise<{ processed: number; error
   let processed = 0;
   
   const orders = await getOrders();
-  const pending = orders.filter(o => o.status === 'pending');
+  const pending = orders.filter(o => o.status === 'paid');
   
   if (pending.length === 0) {
-    await logAudit(AGENT_NAME, 'order_check', 'No pending orders to process', 'info');
+    await logAudit(AGENT_NAME, 'order_check', 'No paid orders waiting to be processed', 'info');
     return { processed: 0, errors: [] };
   }
   
-  await logAudit(AGENT_NAME, 'order_check', `Found ${pending.length} pending order(s) to place with supplier`, 'info');
+  await logAudit(AGENT_NAME, 'order_check', `Found ${pending.length} paid order(s) to place with supplier`, 'info');
   
   for (const order of pending) {
     try {
