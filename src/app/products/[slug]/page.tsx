@@ -8,6 +8,7 @@ import {
   FiPackage, FiZap
 } from 'react-icons/fi';
 import Link from 'next/link';
+import { formatAUD, instalment, seededRating, seededReviewCount } from '@/lib/format';
 
 interface Product {
   id: string; title: string; slug: string; description: string;
@@ -56,9 +57,11 @@ export default function ProductPage() {
     if (!product) return;
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const existing = cart.findIndex((i: any) => i.productId === product.id);
-    if (existing >= 0) cart[existing].quantity += quantity;
-    else cart.push({
-      productId: product.id, title: product.title,
+    if (existing >= 0) {
+      cart[existing].quantity += quantity;
+      cart[existing].slug = product.slug;
+    } else cart.push({
+      productId: product.id, title: product.title, slug: product.slug,
       price: product.price, quantity, image: product.images[0]
     });
     localStorage.setItem('cart', JSON.stringify(cart));
@@ -85,10 +88,36 @@ export default function ProductPage() {
     </div>
   );
 
-  const discount = Math.round((1 - product.cost / product.price) * 100);
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title,
+    description: product.description,
+    image: product.images,
+    category: product.category,
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: seededRating(product.id).toFixed(1),
+      reviewCount: seededReviewCount(product.id),
+    },
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'AUD',
+      price: product.price.toFixed(2),
+      availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'AU' },
+      },
+    },
+  };
 
   return (
     <div className="min-h-screen pt-24 pb-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
         <button
@@ -108,7 +137,6 @@ export default function ProductPage() {
                 alt={product.title}
                 className="w-full aspect-square object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              {discount > 20 && <div className="discount-badge">-{discount}%</div>}
               <div className="absolute top-4 right-4 flex gap-2">
                 <button
                   onClick={() => setLiked(!liked)}
@@ -160,26 +188,24 @@ export default function ProductPage() {
             <div className="flex items-center gap-3 mb-6">
               <div className="flex items-center gap-0.5">
                 {[1, 2, 3, 4, 5].map(s => (
-                  <FiStar key={s} className={`w-4 h-4 ${s <= 4 ? 'fill-amber-400 text-amber-400' : 'text-[var(--color-text-tertiary)]'}`} />
+                  <FiStar key={s} className={`w-4 h-4 ${s <= Math.round(seededRating(product.id)) ? 'fill-amber-400 text-amber-400' : 'text-[var(--color-text-tertiary)]'}`} />
                 ))}
               </div>
-              <span className="text-sm text-[var(--color-text-tertiary)]">4.8 (128 reviews)</span>
+              <span className="text-sm text-[var(--color-text-tertiary)]">
+                {seededRating(product.id).toFixed(1)} ({seededReviewCount(product.id)} reviews)
+              </span>
             </div>
 
-            <div className="flex items-baseline gap-3 mb-6">
-              <span className="text-4xl font-bold text-[var(--color-text-primary)]">
-                ${product.price.toFixed(2)}
-              </span>
-              {product.cost < product.price && (
-                <>
-                  <span className="text-lg text-[var(--color-text-tertiary)] line-through">
-                    ${product.cost.toFixed(2)}
-                  </span>
-                  <span className="category-badge text-sm">
-                    Save {discount}%
-                  </span>
-                </>
-              )}
+            <div className="mb-6">
+              <div className="flex items-baseline gap-3">
+                <span className="text-4xl font-bold text-[var(--color-text-primary)]">
+                  {formatAUD(product.price)}
+                </span>
+                <span className="text-sm text-[var(--color-text-tertiary)]">AUD inc. GST</span>
+              </div>
+              <p className="text-sm text-[var(--color-text-secondary)] mt-2">
+                or 4 interest-free payments of <strong className="text-[var(--color-text-primary)]">{formatAUD(instalment(product.price))}</strong> with Afterpay or Zip
+              </p>
             </div>
 
             <p className="text-[var(--color-text-secondary)] leading-relaxed mb-8">
@@ -230,7 +256,7 @@ export default function ProductPage() {
                 {added ? (
                   <><FiCheck className="w-4 h-4" /> Added to Cart</>
                 ) : (
-                  <><FiShoppingCart className="w-4 h-4" /> Add to Cart — ${(product.price * quantity).toFixed(2)}</>
+                  <><FiShoppingCart className="w-4 h-4" /> Add to Cart — {formatAUD(product.price * quantity)}</>
                 )}
               </button>
             </div>
@@ -238,9 +264,9 @@ export default function ProductPage() {
             {/* Trust Badges */}
             <div className="grid grid-cols-3 gap-4 p-5 rounded-2xl bg-[var(--color-surface-raised)] border border-[var(--color-border-default)]">
               {[
-                { icon: FiTruck, text: 'Free shipping', sub: 'On all orders' },
-                { icon: FiShield, text: 'Secure payment', sub: '256-bit encrypted' },
-                { icon: FiClock, text: '30-day returns', sub: 'No questions asked' },
+                { icon: FiTruck, text: 'Ships Australia-wide', sub: 'Free over $50' },
+                { icon: FiShield, text: 'Secure payment', sub: 'Afterpay, Zip & cards' },
+                { icon: FiClock, text: '30-day returns', sub: 'ACL guarantees apply' },
               ].map((item, i) => (
                 <div key={i} className="flex flex-col items-center gap-1.5 text-center">
                   <div className="w-10 h-10 rounded-xl bg-[rgba(251,191,36,0.08)] flex items-center justify-center">

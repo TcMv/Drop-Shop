@@ -126,6 +126,14 @@ export default function Navbar() {
                 How It Works
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-400 to-amber-600 transition-all group-hover:w-full rounded-full" />
               </Link>
+
+              <Link
+                href="/faq"
+                className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors relative group"
+              >
+                FAQ
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-400 to-amber-600 transition-all group-hover:w-full rounded-full" />
+              </Link>
             </div>
           )}
 
@@ -138,7 +146,7 @@ export default function Navbar() {
                   <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-tertiary)]" />
                   <input
                     type="text"
-                    placeholder="Search..."
+                    placeholder="Search products..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     className="w-40 lg:w-52 pl-10 pr-4 py-2 bg-[var(--color-surface-raised)] border border-[var(--color-border-default)] rounded-full text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-tertiary)] focus:outline-none focus:border-[var(--color-border-active)] focus:ring-1 focus:ring-[rgba(251,191,36,0.06)] transition-all"
@@ -209,6 +217,20 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
             >
               🤖 How It Works
+            </Link>
+            <Link
+              href="/shipping"
+              className="block px-4 py-3 rounded-xl text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(251,191,36,0.06)] transition-all"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              📦 Shipping &amp; Delivery
+            </Link>
+            <Link
+              href="/faq"
+              className="block px-4 py-3 rounded-xl text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(251,191,36,0.06)] transition-all"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              ❓ FAQ
             </Link>
             <div className="border-t border-[var(--color-border-default)] my-2" />
             <Link
