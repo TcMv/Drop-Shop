@@ -39,7 +39,7 @@ export interface Order {
     postcode: string;
     country: string;
   };
-  status: 'pending' | 'placed_with_supplier' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'paid' | 'placed_with_supplier' | 'shipped' | 'delivered' | 'cancelled';
   supplierOrderRef?: string;
   trackingUrl?: string;
   notes?: string;
