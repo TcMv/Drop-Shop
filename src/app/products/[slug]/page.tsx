@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import {
   FiShoppingCart, FiArrowLeft, FiCheck, FiTruck, FiShield,
   FiClock, FiStar, FiPlus, FiMinus, FiHeart, FiShare2,
-  FiPackage, FiZap
+  FiPackage
 } from 'react-icons/fi';
 import Link from 'next/link';
 
@@ -72,8 +72,8 @@ export default function ProductPage() {
   if (!product) return (
     <div className="min-h-screen flex items-center justify-center pt-20">
       <div className="text-center max-w-md mx-auto px-4">
-        <div className="w-20 h-20 rounded-2xl bg-[rgba(251,191,36,0.06)] flex items-center justify-center mx-auto mb-6 border border-[rgba(251,191,36,0.08)]">
-          <FiPackage className="w-8 h-8 text-[var(--color-brand-400)]" />
+        <div className="w-20 h-20 rounded-2xl bg-[rgba(45,106,79,0.06)] flex items-center justify-center mx-auto mb-6 border border-[rgba(45,106,79,0.08)]">
+          <FiPackage className="w-8 h-8 text-[#52B788]" />
         </div>
         <h2 className="text-2xl font-bold mb-2 text-[var(--color-text-primary)]">Product not found</h2>
         <p className="text-[var(--color-text-tertiary)] mb-8">This product doesn&apos;t exist or has been removed.</p>
@@ -85,7 +85,7 @@ export default function ProductPage() {
     </div>
   );
 
-  const discount = Math.round((1 - product.cost / product.price) * 100);
+  const discount = product.cost > 0 ? Math.round((1 - product.cost / product.price) * 100) : 0;
 
   return (
     <div className="min-h-screen pt-24 pb-16">
@@ -102,13 +102,18 @@ export default function ProductPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
           {/* ─── Image Gallery ─── */}
           <div>
-            <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-[var(--color-surface-elevated)] to-[var(--color-surface-card)] border border-[var(--color-border-default)] mb-4 group">
+            <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#1B3A2D] to-[#0C0C0C] border border-[var(--color-border-default)] mb-4 group">
               <img
                 src={product.images[selectedImage] || product.images[0] || '/placeholder.png'}
                 alt={product.title}
                 className="w-full aspect-square object-cover transition-transform duration-700 group-hover:scale-105"
               />
               {discount > 20 && <div className="discount-badge">-{discount}%</div>}
+              {product.category === 'personalised' && (
+                <div className="absolute top-4 left-4">
+                  <span className="personalised-badge">Personalised</span>
+                </div>
+              )}
               <div className="absolute top-4 right-4 flex gap-2">
                 <button
                   onClick={() => setLiked(!liked)}
@@ -130,7 +135,7 @@ export default function ProductPage() {
                     onClick={() => setSelectedImage(idx)}
                     className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 ${
                       idx === selectedImage
-                        ? 'border-[var(--color-brand-400)] ring-1 ring-[rgba(251,191,36,0.3)]'
+                        ? 'border-[#52B788] ring-1 ring-[rgba(45,106,79,0.3)]'
                         : 'border-[var(--color-border-default)] hover:border-[var(--color-text-tertiary)]'
                     }`}
                   >
@@ -144,9 +149,13 @@ export default function ProductPage() {
           {/* ─── Product Info ─── */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <span className="category-badge">{product.category}</span>
+              {product.category === 'personalised' ? (
+                <span className="personalised-badge">Personalised</span>
+              ) : (
+                <span className="category-badge">{product.category}</span>
+              )}
               {product.stock > 0 && (
-                <span className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
+                <span className="flex items-center gap-1.5 text-xs text-[#52B788] bg-[#2D6A4F]/10 border border-[#2D6A4F]/20 px-3 py-1 rounded-full">
                   <FiCheck className="w-3 h-3" />
                   In Stock ({product.stock})
                 </span>
@@ -157,20 +166,11 @@ export default function ProductPage() {
               {product.title}
             </h1>
 
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex items-center gap-0.5">
-                {[1, 2, 3, 4, 5].map(s => (
-                  <FiStar key={s} className={`w-4 h-4 ${s <= 4 ? 'fill-amber-400 text-amber-400' : 'text-[var(--color-text-tertiary)]'}`} />
-                ))}
-              </div>
-              <span className="text-sm text-[var(--color-text-tertiary)]">4.8 (128 reviews)</span>
-            </div>
-
             <div className="flex items-baseline gap-3 mb-6">
               <span className="text-4xl font-bold text-[var(--color-text-primary)]">
-                ${product.price.toFixed(2)}
+                ${product.price.toFixed(2)} AUD
               </span>
-              {product.cost < product.price && (
+              {product.cost < product.price && product.cost > 0 && (
                 <>
                   <span className="text-lg text-[var(--color-text-tertiary)] line-through">
                     ${product.cost.toFixed(2)}
@@ -223,7 +223,7 @@ export default function ProductPage() {
                 onClick={addToCart}
                 className={`flex-1 flex items-center justify-center gap-2 px-8 py-3.5 rounded-full font-semibold text-sm transition-all duration-300 ${
                   added
-                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                    ? 'bg-[#2D6A4F] text-white shadow-lg shadow-[#2D6A4F]/20'
                     : 'btn-primary'
                 }`}
               >
@@ -238,13 +238,13 @@ export default function ProductPage() {
             {/* Trust Badges */}
             <div className="grid grid-cols-3 gap-4 p-5 rounded-2xl bg-[var(--color-surface-raised)] border border-[var(--color-border-default)]">
               {[
-                { icon: FiTruck, text: 'Free shipping', sub: 'On all orders' },
+                { icon: FiTruck, text: 'AU Shipping', sub: '14-21 days' },
                 { icon: FiShield, text: 'Secure payment', sub: '256-bit encrypted' },
                 { icon: FiClock, text: '30-day returns', sub: 'No questions asked' },
               ].map((item, i) => (
                 <div key={i} className="flex flex-col items-center gap-1.5 text-center">
-                  <div className="w-10 h-10 rounded-xl bg-[rgba(251,191,36,0.08)] flex items-center justify-center">
-                    <item.icon className="w-5 h-5 text-[var(--color-brand-400)]" />
+                  <div className="w-10 h-10 rounded-xl bg-[rgba(45,106,79,0.08)] flex items-center justify-center">
+                    <item.icon className="w-5 h-5 text-[#52B788]" />
                   </div>
                   <span className="text-xs font-medium text-[var(--color-text-primary)]">{item.text}</span>
                   <span className="text-[10px] text-[var(--color-text-tertiary)]">{item.sub}</span>
@@ -252,15 +252,13 @@ export default function ProductPage() {
               ))}
             </div>
 
-            {/* AI Badge */}
-            <div className="mt-6 flex items-center gap-3 p-4 rounded-2xl bg-[rgba(251,191,36,0.04)] border border-[rgba(251,191,36,0.08)]">
-              <div className="w-10 h-10 rounded-xl bg-[rgba(251,191,36,0.1)] flex items-center justify-center">
-                <FiZap className="w-5 h-5 text-[var(--color-brand-400)]" />
-              </div>
+            {/* Hackers Club Banner */}
+            <div className="mt-6 flex items-center gap-3 p-4 rounded-2xl bg-[rgba(212,168,67,0.06)] border border-[rgba(212,168,67,0.12)]">
+              <span className="text-2xl">🎲</span>
               <div>
-                <p className="text-sm font-medium text-[var(--color-text-primary)]">AI-Sourced Product</p>
-                <p className="text-xs text-[var(--color-text-tertiary)]">
-                  This product was found, verified, and listed by our AI agents
+                <p className="text-sm font-semibold gold-text">The Hackers Club</p>
+                <p className="text-xs text-[#E8DCC4]/70">
+                  Members get 10% off — <Link href="/#hackers-club" className="gold-text underline">join free</Link>
                 </p>
               </div>
             </div>

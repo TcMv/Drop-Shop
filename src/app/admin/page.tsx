@@ -17,21 +17,21 @@ export default async function AdminPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-10">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400/20 to-amber-600/10 border border-[rgba(251,191,36,0.12)] flex items-center justify-center">
-            <FiShield className="w-6 h-6 text-[var(--color-brand-400)]" />
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#2D6A4F]/20 to-[#40916C]/10 border border-[rgba(45,106,79,0.12)] flex items-center justify-center">
+            <FiShield className="w-6 h-6 text-[#52B788]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-display font-bold text-[var(--color-text-primary)]">
-                Admin Dashboard
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-[var(--color-text-primary)] uppercase">
+                Slice & Dice Golf
               </h1>
-              <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#2D6A4F]/10 border border-[#2D6A4F]/20 text-[#52B788]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#52B788] animate-pulse" />
                 Live
               </span>
             </div>
             <p className="text-sm text-[var(--color-text-tertiary)]">
-              Manage your dropshipping store — agents, products, orders
+              Manage your golf accessories store — products, orders, catalog
             </p>
           </div>
         </div>
@@ -39,10 +39,10 @@ export default async function AdminPage() {
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
-            { icon: FiPackage, label: 'Active Products', value: active, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-            { icon: FiBarChart2, label: 'Drafts', value: drafts, color: 'text-amber-300', bg: 'bg-amber-400/10' },
-            { icon: FiTruck, label: 'Orders', value: orders.length, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-            { icon: FiSettings, label: 'Revenue', value: `$${revenue.toFixed(0)}`, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+            { icon: FiPackage, label: 'Active Products', value: active, color: 'text-[#52B788]', bg: 'bg-[#2D6A4F]/10' },
+            { icon: FiBarChart2, label: 'Drafts', value: drafts, color: 'text-[#52B788]', bg: 'bg-[#2D6A4F]/10' },
+            { icon: FiTruck, label: 'Orders', value: orders.length, color: 'text-[#D4A843]', bg: 'bg-[#D4A843]/10' },
+            { icon: FiSettings, label: 'Revenue', value: `$${revenue.toFixed(0)}`, color: 'text-[#D4A843]', bg: 'bg-[#D4A843]/10' },
           ].map((s, i) => (
             <div
               key={i}
@@ -61,11 +61,11 @@ export default async function AdminPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-display font-semibold text-[var(--color-text-primary)]">
-              Products ({products.length})
+              Golf Products ({products.length})
             </h2>
             <Link
               href="/"
-              className="flex items-center gap-1.5 text-sm text-[var(--color-brand-400)] hover:text-[var(--color-brand-300)] transition-colors"
+              className="flex items-center gap-1.5 text-sm text-[#52B788] hover:text-[#40916C] transition-colors"
             >
               <FiExternalLink className="w-3 h-3" />
               View Store
@@ -75,11 +75,11 @@ export default async function AdminPage() {
           <div className="rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] overflow-hidden">
             {products.length === 0 ? (
               <div className="text-center py-16">
-                <div className="w-14 h-14 rounded-2xl bg-[rgba(251,191,36,0.06)] flex items-center justify-center mx-auto mb-4 border border-[rgba(251,191,36,0.08)]">
-                  <FiPackage className="w-6 h-6 text-[var(--color-brand-400)]" />
+                <div className="w-14 h-14 rounded-2xl bg-[rgba(45,106,79,0.06)] flex items-center justify-center mx-auto mb-4 border border-[rgba(45,106,79,0.08)]">
+                  <FiPackage className="w-6 h-6 text-[#52B788]" />
                 </div>
                 <p className="text-[var(--color-text-primary)] font-medium">No products yet.</p>
-                <p className="text-xs text-[var(--color-text-tertiary)] mt-1">The AI sourcing agent is curating new items.</p>
+                <p className="text-xs text-[var(--color-text-tertiary)] mt-1">The catalog is being curated.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -88,17 +88,17 @@ export default async function AdminPage() {
                     <tr className="border-b border-[var(--color-border-default)]">
                       <th className="text-left p-4 text-[var(--color-text-tertiary)] font-medium text-xs uppercase tracking-wider">Product</th>
                       <th className="text-left p-4 text-[var(--color-text-tertiary)] font-medium text-xs uppercase tracking-wider hidden sm:table-cell">Category</th>
-                      <th className="text-right p-4 text-[var(--color-text-tertiary)] font-medium text-xs uppercase tracking-wider">Price</th>
+                      <th className="text-right p-4 text-[var(--color-text-tertiary)] font-medium text-xs uppercase tracking-wider">Price (AUD)</th>
                       <th className="text-center p-4 text-[var(--color-text-tertiary)] font-medium text-xs uppercase tracking-wider hidden md:table-cell">Stock</th>
                       <th className="text-center p-4 text-[var(--color-text-tertiary)] font-medium text-xs uppercase tracking-wider">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {products.map(p => (
-                      <tr key={p.id} className="border-b border-[var(--color-border-default)]/50 hover:bg-[rgba(251,191,36,0.02)] transition-colors">
+                      <tr key={p.id} className="border-b border-[var(--color-border-default)]/50 hover:bg-[rgba(45,106,79,0.02)] transition-colors">
                         <td className="p-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-br from-[var(--color-surface-elevated)] to-[var(--color-surface-card)] shrink-0">
+                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-br from-[#1B3A2D] to-[#0C0C0C] shrink-0">
                               <img src={p.images[0] || ''} alt="" className="w-full h-full object-cover" />
                             </div>
                             <span className="text-[var(--color-text-primary)] line-clamp-1 max-w-[200px] font-medium">
@@ -118,9 +118,9 @@ export default async function AdminPage() {
                         <td className="p-4 text-center">
                           <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
                             p.status === 'active'
-                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                              ? 'bg-[#2D6A4F]/10 text-[#52B788] border-[#2D6A4F]/20'
                               : p.status === 'draft'
-                              ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                              ? 'bg-[#D4A843]/10 text-[#D4A843] border-[#D4A843]/20'
                               : 'bg-gray-500/10 text-gray-400 border-gray-500/20'
                           }`}>
                             {p.status}
@@ -143,10 +143,10 @@ export default async function AdminPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Link
               href="/api/setup"
-              className="p-6 rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] hover:border-[var(--color-border-hover)] hover:shadow-[var(--shadow-glow-amber)] transition-all group"
+              className="p-6 rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] hover:border-[var(--color-border-hover)] hover:shadow-[var(--shadow-glow-green)] transition-all group"
             >
-              <h3 className="font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand-400)] transition-colors flex items-center gap-2">
-                <FiZap className="w-4 h-4 text-[var(--color-brand-400)]" />
+              <h3 className="font-semibold text-[var(--color-text-primary)] group-hover:text-[#52B788] transition-colors flex items-center gap-2">
+                <FiZap className="w-4 h-4 text-[#52B788]" />
                 Setup / Seed
               </h3>
               <p className="text-xs text-[var(--color-text-tertiary)] mt-2">
@@ -155,10 +155,10 @@ export default async function AdminPage() {
             </Link>
             <Link
               href="/admin/audit"
-              className="p-6 rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] hover:border-[var(--color-border-hover)] hover:shadow-[var(--shadow-glow-amber)] transition-all group"
+              className="p-6 rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] hover:border-[var(--color-border-hover)] hover:shadow-[var(--shadow-glow-green)] transition-all group"
             >
-              <h3 className="font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand-400)] transition-colors flex items-center gap-2">
-                <FiActivity className="w-4 h-4 text-[var(--color-brand-400)]" />
+              <h3 className="font-semibold text-[var(--color-text-primary)] group-hover:text-[#52B788] transition-colors flex items-center gap-2">
+                <FiActivity className="w-4 h-4 text-[#52B788]" />
                 Audit Log
               </h3>
               <p className="text-xs text-[var(--color-text-tertiary)] mt-2">
@@ -169,10 +169,10 @@ export default async function AdminPage() {
               href="https://supabase.com/dashboard/project/oaklafuvpugiafxfjgls"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-6 rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] hover:border-[var(--color-border-hover)] hover:shadow-[var(--shadow-glow-amber)] transition-all group"
+              className="p-6 rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] hover:border-[var(--color-border-hover)] hover:shadow-[var(--shadow-glow-green)] transition-all group"
             >
-              <h3 className="font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand-400)] transition-colors flex items-center gap-2">
-                <FiSettings className="w-4 h-4 text-[var(--color-brand-400)]" />
+              <h3 className="font-semibold text-[var(--color-text-primary)] group-hover:text-[#52B788] transition-colors flex items-center gap-2">
+                <FiSettings className="w-4 h-4 text-[#52B788]" />
                 Supabase Dashboard
               </h3>
               <p className="text-xs text-[var(--color-text-tertiary)] mt-2">

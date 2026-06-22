@@ -49,7 +49,7 @@ export default function CartPage() {
   }
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = subtotal > 50 ? 0 : 5.99;
+  const shipping = subtotal > 99 ? 0 : 5.99;
   const total = subtotal + shipping;
 
   if (!mounted) return null;
@@ -58,8 +58,8 @@ export default function CartPage() {
     <div className="min-h-screen pt-24 pb-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-[rgba(251,191,36,0.08)] border border-[rgba(251,191,36,0.1)] flex items-center justify-center">
-            <FiShoppingCart className="w-6 h-6 text-[var(--color-brand-400)]" />
+          <div className="w-12 h-12 rounded-2xl bg-[rgba(45,106,79,0.08)] border border-[rgba(45,106,79,0.1)] flex items-center justify-center">
+            <FiShoppingCart className="w-6 h-6 text-[#52B788]" />
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-[var(--color-text-primary)]">
@@ -73,14 +73,14 @@ export default function CartPage() {
 
         {items.length === 0 ? (
           <div className="text-center py-24">
-            <div className="w-24 h-24 rounded-2xl bg-[rgba(251,191,36,0.06)] border border-[rgba(251,191,36,0.08)] flex items-center justify-center mx-auto mb-6">
-              <FiShoppingCart className="w-10 h-10 text-[var(--color-brand-400)]" />
+            <div className="w-24 h-24 rounded-2xl bg-[rgba(45,106,79,0.06)] border border-[rgba(45,106,79,0.08)] flex items-center justify-center mx-auto mb-6">
+              <FiShoppingCart className="w-10 h-10 text-[#52B788]" />
             </div>
             <h2 className="text-xl font-display font-semibold text-[var(--color-text-primary)] mb-2">
               Your cart is empty
             </h2>
             <p className="text-[var(--color-text-tertiary)] mb-8">
-              Looks like you haven&apos;t added anything yet. The AI agents are waiting!
+              Your cart&apos;s emptier than a Sunday arvo on the back nine.
             </p>
             <Link href="/" className="btn-primary inline-flex items-center gap-2">
               <FiArrowLeft className="w-4 h-4" />
@@ -147,12 +147,10 @@ export default function CartPage() {
               ))}
 
               {/* AI Note */}
-              <div className="flex items-center gap-3 p-4 rounded-2xl bg-[rgba(251,191,36,0.04)] border border-[rgba(251,191,36,0.08)]">
-                <div className="w-9 h-9 rounded-xl bg-[rgba(251,191,36,0.1)] flex items-center justify-center">
-                  <FiZap className="w-4 h-4 text-[var(--color-brand-400)]" />
-                </div>
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-[rgba(45,106,79,0.04)] border border-[rgba(45,106,79,0.08)]">
+                <span className="text-xl">🏌️</span>
                 <p className="text-xs text-[var(--color-text-tertiary)]">
-                  All items are AI-sourced and quality-checked. Free shipping on orders over $50.
+                  Premium AU golf accessories. Free shipping on orders over $99.
                 </p>
               </div>
             </div>
@@ -180,7 +178,7 @@ export default function CartPage() {
                   {shipping > 0 && (
                     <p className="text-xs text-[var(--color-text-tertiary)] flex items-center gap-1">
                       <FiTruck className="w-3 h-3 text-[var(--color-brand-400)]" />
-                      Free shipping on orders over $50
+                      Free shipping on orders over $99
                     </p>
                   )}
                   <div className="border-t border-[var(--color-border-default)] pt-3 mt-3">

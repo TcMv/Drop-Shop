@@ -34,7 +34,7 @@ export default function CheckoutPage() {
   }, [router]);
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = subtotal > 50 ? 0 : 5.99;
+  const shipping = subtotal > 99 ? 0 : 5.99;
   const total = subtotal + shipping;
   const valid = form.name && form.email && form.address && form.city;
 
@@ -108,7 +108,7 @@ export default function CheckoutPage() {
               {/* Shipping Info */}
               <div className="p-6 sm:p-8 rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)]">
                 <h2 className="font-display font-semibold text-lg text-[var(--color-text-primary)] mb-6 flex items-center gap-2">
-                  <FiTruck className="w-5 h-5 text-[var(--color-brand-400)]" />
+                  <FiTruck className="w-5 h-5 text-[#52B788]" />
                   Shipping Information
                 </h2>
 
@@ -214,7 +214,7 @@ export default function CheckoutPage() {
               {/* Payment Methods Preview */}
               <div className="p-6 sm:p-8 rounded-2xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)]">
                 <h2 className="font-display font-semibold text-lg text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
-                  <FiCreditCard className="w-5 h-5 text-[var(--color-brand-400)]" />
+                  <FiCreditCard className="w-5 h-5 text-[#52B788]" />
                   Payment Methods
                 </h2>
                 <p className="text-sm text-[var(--color-text-secondary)] mb-4">
@@ -260,7 +260,7 @@ export default function CheckoutPage() {
               </button>
 
               <p className="text-center text-xs text-[var(--color-text-tertiary)] flex items-center justify-center gap-1">
-                <FiShield className="w-3 h-3 text-[var(--color-brand-400)]" />
+                <FiShield className="w-3 h-3 text-[#52B788]" />
                 Secure checkout — powered by Stripe. Afterpay, Zip, and cards accepted.
               </p>
             </form>
@@ -311,8 +311,8 @@ export default function CheckoutPage() {
                 </div>
                 {shipping > 0 && (
                   <p className="text-xs text-[var(--color-text-tertiary)] flex items-center gap-1">
-                    <FiTruck className="w-3 h-3 text-[var(--color-brand-400)]" />
-                    Free on orders $50+
+                    <FiTruck className="w-3 h-3 text-[#52B788]" />
+                    Free on orders $99+
                   </p>
                 )}
                 <div className="border-t border-[var(--color-border-default)] pt-3 mt-3">
@@ -321,7 +321,7 @@ export default function CheckoutPage() {
                     <span className="font-bold text-[var(--color-text-primary)]">${total.toFixed(2)}</span>
                   </div>
                   <p className="text-xs text-[var(--color-text-tertiary)] mt-1 flex items-center gap-1">
-                    <FiZap className="w-3 h-3 text-[var(--color-brand-400)]" />
+                    <span className="text-[#52B788] text-xs">🏌️</span>
                     Or 4 interest-free payments of ${(total / 4).toFixed(2)} with Afterpay
                   </p>
                 </div>

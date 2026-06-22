@@ -1,70 +1,74 @@
 import type { Metadata } from 'next';
-import { Inter, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
+import { Inter, Oswald, Playfair_Display, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 
 const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-body' });
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], display: 'swap', variable: '--font-display' });
+const oswald = Oswald({ subsets: ['latin'], display: 'swap', variable: '--font-display' });
+const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-accent' });
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], display: 'swap', variable: '--font-mono', weight: ['400'] });
 
 export const metadata: Metadata = {
-  title: 'DropShop — AI-Powered Dropshipping',
-  description: 'Every product is AI-sourced, quality-checked, and delivered to your door. Smart sourcing, automated fulfillment, unbeatable value.',
-  keywords: ['dropshipping', 'AI ecommerce', 'online store', 'smart shopping'],
+  title: 'Slice & Dice Golf — Accessories for the Other 90%',
+  description: 'AU golf accessories for weekend hackers. Personalised ball stamps, towels, divot tools, and more. Hit it. Slice it. Try again.',
+  keywords: ['golf accessories', 'AU golf store', 'personalised golf', 'golf gifts', 'hackers club', 'slice and dice'],
   openGraph: {
-    title: 'DropShop — AI-Powered Dropshipping',
-    description: 'Every product is AI-sourced, quality-checked, and delivered to your door.',
+    title: 'Slice & Dice Golf — Accessories for the Other 90%',
+    description: 'AU golf accessories for weekend hackers. Hit it. Slice it. Try again.',
     type: 'website',
-    siteName: 'DropShop',
+    siteName: 'Slice & Dice Golf',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'DropShop — AI-Powered Dropshipping',
-    description: 'Every product is AI-sourced, quality-checked, and delivered to your door.',
+    title: 'Slice & Dice Golf — Accessories for the Other 90%',
+    description: 'AU golf accessories for weekend hackers. Hit it. Slice it. Try again.',
   },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${oswald.variable} ${playfair.variable} ${jetbrainsMono.variable}`}>
       <body className="font-body antialiased">
         <Navbar />
         <main className="min-h-screen">{children}</main>
 
         {/* Footer */}
-        <footer className="border-t border-[var(--color-border-default)]">
+        <footer className="border-t border-[var(--color-border-default)]" style={{ background: '#1B3A2D' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
               {/* Brand */}
               <div className="md:col-span-1">
                 <div className="flex items-center gap-2.5 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
-                    <svg className="w-5 h-5 text-[#08080a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2D6A4F] to-[#40916C] flex items-center justify-center shadow-lg shadow-[#2D6A4F]/30">
+                    <svg className="w-5 h-5 text-[#FBFBFB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <circle cx="12" cy="12" r="9" />
+                      <circle cx="9" cy="9" r="0.8" fill="currentColor" />
+                      <circle cx="15" cy="15" r="0.8" fill="currentColor" />
+                      <circle cx="12" cy="12" r="0.8" fill="currentColor" />
                     </svg>
                   </div>
-                  <span className="text-lg font-bold tracking-tight">
-                    <span className="amber-gradient">Drop</span>
-                    <span className="text-[var(--color-text-primary)]">Shop</span>
+                  <span className="text-lg font-bold tracking-tight text-[#FBFBFB]" style={{ fontFamily: 'var(--font-display)' }}>
+                    SLICE & DICE
+                    <span className="block text-xs font-normal text-[#E8DCC4]" style={{ fontFamily: 'var(--font-body)' }}>GOLF</span>
                   </span>
                 </div>
-                <p className="text-sm text-[var(--color-text-tertiary)] leading-relaxed max-w-xs">
-                  AI-powered dropshipping. Every product curated by intelligent agents, quality-checked, and delivered to your door.
+                <p className="text-sm text-[#E8DCC4] leading-relaxed max-w-xs">
+                  Accessories for the other 90%. AU golf gear for weekend hackers who don't take themselves too seriously.
                 </p>
               </div>
 
               {/* Links */}
               {[
-                { title: 'Shop', links: ['All Products', 'Categories', 'New Arrivals', 'Best Sellers', 'Deals'] },
-                { title: 'Support', links: ['Help Center', 'Shipping Info', 'Returns', 'Contact', 'FAQ'] },
-                { title: 'Company', links: ['About', 'AI Technology', 'Careers', 'Privacy', 'Terms'] },
+                { title: 'Shop', links: ['All Products', 'Personalised', 'Accessories', 'The Hackers Club'] },
+                { title: 'Support', links: ['Shipping Info', 'Returns', 'Contact', 'FAQ'] },
+                { title: 'Company', links: ['About', 'The Hackers Club', 'Privacy', 'Terms'] },
               ].map(col => (
                 <div key={col.title}>
-                  <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-widest mb-4">{col.title}</h4>
+                  <h4 className="text-xs font-semibold text-[#E8DCC4] uppercase tracking-widest mb-4">{col.title}</h4>
                   <ul className="space-y-3">
                     {col.links.map(link => (
                       <li key={link}>
-                        <a href="#" className="text-sm text-[var(--color-text-tertiary)] hover:text-[var(--color-brand-400)] transition-colors duration-200">
+                        <a href="#" className="text-sm text-[#FBFBFB]/60 hover:text-[#52B788] transition-colors duration-200">
                           {link}
                         </a>
                       </li>
@@ -74,13 +78,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               ))}
             </div>
 
-            <div className="border-t border-[var(--color-border-default)] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <p className="text-xs text-[var(--color-text-tertiary)]">
-                © 2026 DropShop. All operations AI-powered and audited.
+            <div className="border-t border-[#FBFBFB]/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-xs text-[#E8DCC4]/60">
+                © 2026 Slice & Dice Golf. Hit it. Slice it. Try again.
               </p>
               <div className="flex items-center gap-6">
-                {['Twitter', 'Instagram', 'GitHub', 'Discord'].map(social => (
-                  <a key={social} href="#" className="text-xs text-[var(--color-text-tertiary)] hover:text-[var(--color-brand-400)] transition-colors">
+                {['Instagram', 'Facebook', 'TikTok'].map(social => (
+                  <a key={social} href="#" className="text-xs text-[#FBFBFB]/60 hover:text-[#52B788] transition-colors">
                     {social}
                   </a>
                 ))}

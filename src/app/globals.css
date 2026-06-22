@@ -1,48 +1,48 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════
-   DROPSHOP — World-Class AI Dropshipping
-   Design System v2.0
+   SLICE & DICE GOLF — Brand Design System v1.0
    ═══════════════════════════════════════════ */
 
 @theme {
-  /* Brand Colors — Warm Amber & Charcoal */
-  --color-brand-50: #fffbeb;
-  --color-brand-100: #fef3c7;
-  --color-brand-200: #fde68a;
-  --color-brand-300: #fcd34d;
-  --color-brand-400: #fbbf24;
-  --color-brand-500: #f59e0b;
-  --color-brand-600: #d97706;
-  --color-brand-700: #b45309;
-  --color-brand-800: #92400e;
-  --color-brand-900: #78350f;
+  /* Brand Colors — Golf Green & Midnight */
+  --color-brand-50: #e8f5ee;
+  --color-brand-100: #c8e6d9;
+  --color-brand-200: #95d4b4;
+  --color-brand-300: #52b788;
+  --color-brand-400: #40916c;
+  --color-brand-500: #2d6a4f;
+  --color-brand-600: #1b3a2d;
+  --color-brand-700: #0f2a1f;
+  --color-brand-800: #0a1f16;
+  --color-brand-900: #051409;
 
-  /* Surface Colors — Warm Dark */
-  --color-surface-canvas: #08080a;
-  --color-surface-raised: #0f0f13;
-  --color-surface-card: #16161e;
-  --color-surface-elevated: #1c1c28;
-  --color-surface-hover: #23233a;
+  /* Surface Colors — Dark & Sand */
+  --color-surface-canvas: #0c0c0c;
+  --color-surface-raised: #141414;
+  --color-surface-card: #1a1a1a;
+  --color-surface-elevated: #222222;
+  --color-surface-hover: #2a2a2a;
   --color-border-default: rgba(255, 255, 255, 0.06);
-  --color-border-hover: rgba(251, 191, 36, 0.15);
-  --color-border-active: rgba(251, 191, 36, 0.3);
+  --color-border-hover: rgba(45, 106, 79, 0.25);
+  --color-border-active: rgba(45, 106, 79, 0.4);
 
   /* Text */
-  --color-text-primary: #f5f0eb;
-  --color-text-secondary: rgba(245, 240, 235, 0.6);
-  --color-text-tertiary: rgba(245, 240, 235, 0.35);
+  --color-text-primary: #fbfbfb;
+  --color-text-secondary: rgba(251, 251, 251, 0.6);
+  --color-text-tertiary: rgba(251, 251, 251, 0.35);
 
   /* Glows */
-  --shadow-glow-amber: 0 0 30px rgba(251, 191, 36, 0.08);
-  --shadow-glow-amber-lg: 0 0 60px rgba(251, 191, 36, 0.12);
+  --shadow-glow-green: 0 0 30px rgba(45, 106, 79, 0.08);
+  --shadow-glow-green-lg: 0 0 60px rgba(45, 106, 79, 0.12);
   --shadow-card: 0 4px 24px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.3);
-  --shadow-card-hover: 0 8px 40px rgba(251,191,36,0.06), 0 2px 8px rgba(0,0,0,0.4);
+  --shadow-card-hover: 0 8px 40px rgba(45,106,79,0.06), 0 2px 8px rgba(0,0,0,0.4);
   --shadow-elevated: 0 20px 60px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.4);
 
   /* Typography */
-  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-display: 'Oswald', 'Impact', sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
+  --font-accent: 'Playfair Display', 'Georgia', serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
@@ -58,34 +58,45 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
-::selection { background: rgba(251, 191, 36, 0.2); color: white; }
+::selection { background: rgba(45, 106, 79, 0.3); color: white; }
 
 /* ─── Scrollbar ─── */
 * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.06) transparent; }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(251,191,36,0.2); }
+::-webkit-scrollbar-thumb:hover { background: rgba(45,106,79,0.2); }
 
 /* ─── Glass Navigation ─── */
 .glass-nav {
   backdrop-filter: blur(24px) saturate(1.8);
   -webkit-backdrop-filter: blur(24px) saturate(1.8);
-  background: rgba(8, 8, 10, 0.8);
+  background: rgba(12, 12, 12, 0.8);
   border-bottom: 1px solid var(--color-border-default);
 }
 
 /* ─── Animated Gradient Text ─── */
-.amber-gradient {
-  background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+.golf-gradient {
+  background: linear-gradient(135deg, #2d6a4f, #52b788, #40916c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Gold Text for Hackers Club ─── */
+.gold-text {
+  color: #d4a843;
+}
+.gold-gradient {
+  background: linear-gradient(135deg, #d4a843, #e8c25a, #d4a843);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 /* ─── Glow Effects ─── */
-.glow-amber {
-  box-shadow: 0 0 40px rgba(251, 191, 36, 0.08), 0 0 80px rgba(251, 191, 36, 0.04);
+.glow-green {
+  box-shadow: 0 0 40px rgba(45, 106, 79, 0.08), 0 0 80px rgba(45, 106, 79, 0.04);
 }
 .glow-border {
   position: relative;
@@ -96,7 +107,7 @@ body {
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(251,191,36,0.15), transparent 40%, rgba(251,191,36,0.05));
+  background: linear-gradient(135deg, rgba(45,106,79,0.15), transparent 40%, rgba(45,106,79,0.05));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -114,7 +125,7 @@ body {
 }
 .product-card:hover {
   border-color: var(--color-border-hover);
-  box-shadow: var(--shadow-card-hover), var(--shadow-glow-amber);
+  box-shadow: var(--shadow-card-hover), var(--shadow-glow-green);
   transform: translateY(-6px);
 }
 .product-card:hover .product-card-image img {
@@ -123,7 +134,7 @@ body {
 .product-card-image {
   overflow: hidden;
   position: relative;
-  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  background: linear-gradient(135deg, #1b3a2d, #0c0c0c);
 }
 .product-card-image img {
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
@@ -132,7 +143,7 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(8,8,10,0.6) 0%, transparent 40%);
+  background: linear-gradient(to top, rgba(12,12,12,0.6) 0%, transparent 40%);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.4s ease;
@@ -143,8 +154,8 @@ body {
 
 /* ─── Buttons ─── */
 .btn-primary {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #08080a;
+  background: linear-gradient(135deg, #2d6a4f, #40916c);
+  color: #fbfbfb;
   border: none;
   border-radius: 100px;
   padding: 12px 28px;
@@ -152,7 +163,7 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  letter-spacing: 0.01em;
+  letter-spacing: 0.03em;
   position: relative;
   overflow: hidden;
 }
@@ -160,13 +171,13 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  background: linear-gradient(135deg, #40916c, #52b788);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(245, 158, 11, 0.25);
+  box-shadow: 0 12px 40px rgba(45, 106, 79, 0.3);
 }
 .btn-primary:hover::before {
   opacity: 1;
@@ -192,13 +203,31 @@ body {
 }
 .btn-secondary:hover {
   border-color: var(--color-border-hover);
-  background: rgba(251, 191, 36, 0.04);
-  box-shadow: var(--shadow-glow-amber);
+  background: rgba(45, 106, 79, 0.06);
+  box-shadow: var(--shadow-glow-green);
+}
+
+/* ─── Gold Button (Hackers Club) ─── */
+.btn-gold {
+  background: linear-gradient(135deg, #d4a843, #e8c25a);
+  color: #1b3a2d;
+  border: none;
+  border-radius: 100px;
+  padding: 12px 28px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: 0.02em;
+}
+.btn-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(212, 168, 67, 0.3);
 }
 
 /* ─── Badges ─── */
 .discount-badge {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: linear-gradient(135deg, #c95d3a, #b84d2a);
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -209,24 +238,44 @@ body {
   left: 14px;
   z-index: 2;
   letter-spacing: 0.03em;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 4px 12px rgba(201, 93, 58, 0.3);
 }
 .category-badge {
-  background: rgba(251, 191, 36, 0.08);
-  border: 1px solid rgba(251, 191, 36, 0.12);
+  background: rgba(45, 106, 79, 0.1);
+  border: 1px solid rgba(45, 106, 79, 0.15);
   padding: 3px 12px;
   border-radius: 100px;
   font-size: 11px;
   font-weight: 600;
   color: var(--color-brand-400);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
-.rating-stars { color: #f59e0b; font-size: 12px; letter-spacing: 2px; }
+.personalised-badge {
+  background: linear-gradient(135deg, #2d6a4f, #40916c);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 100px;
+  letter-spacing: 0.04em;
+}
+.member-badge {
+  background: linear-gradient(135deg, #d4a843, #e8c25a);
+  color: #1b3a2d;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 100px;
+  letter-spacing: 0.03em;
+}
+.rating-stars { color: #d4a843; font-size: 12px; letter-spacing: 2px; }
 
 /* ─── Section Spacing ─── */
 .section-padding { padding: 100px 0; }
 @media (min-width: 768px) { .section-padding { padding: 140px 0; } }
 
-/* ─── Hero Blob ─── */
+/* ─── Hero Blob (Green) ─── */
 .hero-blob {
   position: absolute;
   border-radius: 50%;
@@ -237,7 +286,7 @@ body {
 .hero-blob--1 {
   width: 500px;
   height: 500px;
-  background: rgba(251, 191, 36, 0.12);
+  background: rgba(45, 106, 79, 0.15);
   top: -10%;
   right: -5%;
   animation: blobFloat 20s ease-in-out infinite;
@@ -245,7 +294,7 @@ body {
 .hero-blob--2 {
   width: 400px;
   height: 400px;
-  background: rgba(217, 119, 6, 0.08);
+  background: rgba(27, 58, 45, 0.12);
   bottom: 10%;
   left: -8%;
   animation: blobFloat 25s ease-in-out infinite reverse;
@@ -253,7 +302,7 @@ body {
 .hero-blob--3 {
   width: 300px;
   height: 300px;
-  background: rgba(251, 191, 36, 0.06);
+  background: rgba(45, 106, 79, 0.08);
   top: 40%;
   left: 30%;
   animation: blobFloat 18s ease-in-out infinite 5s;
@@ -275,32 +324,6 @@ body {
   transform: translateY(0);
 }
 
-/* ─── Agent Activity Feed ─── */
-.activity-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  position: relative;
-  flex-shrink: 0;
-}
-.activity-dot::after {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: 50%;
-  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-.activity-dot.amber { background: #f59e0b; }
-.activity-dot.amber::after { background: rgba(245, 158, 11, 0.3); }
-.activity-dot.green { background: #10b981; }
-.activity-dot.green::after { background: rgba(16, 185, 129, 0.3); }
-.activity-dot.blue { background: #3b82f6; }
-.activity-dot.blue::after { background: rgba(59, 130, 246, 0.3); }
-
-@keyframes ping {
-  75%, 100% { transform: scale(2); opacity: 0; }
-}
-
 /* ─── Input Styles ─── */
 .input-field {
   width: 100%;
@@ -316,7 +339,7 @@ body {
 }
 .input-field:focus {
   border-color: var(--color-border-active);
-  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.06);
+  box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.06);
 }
 .input-field::placeholder {
   color: var(--color-text-tertiary);
@@ -369,12 +392,40 @@ body {
   border: 1px solid var(--color-border-hover);
   border-radius: 16px;
   padding: 16px 20px;
-  box-shadow: var(--shadow-elevated), var(--shadow-glow-amber);
+  box-shadow: var(--shadow-elevated), var(--shadow-glow-green);
   animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Dice Ball Animation (Loading) ─── */
+.dice-ball-loader {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fbfbfb, #e8dcc4);
+  position: relative;
+  animation: bounce 1s ease-in-out infinite;
+  box-shadow: 0 4px 20px rgba(45, 106, 79, 0.3);
+}
+.dice-ball-loader::before {
+  content: '•\A•\A•';
+  white-space: pre;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8px;
+  line-height: 1.5;
+  color: #1b3a2d;
+  text-align: center;
+  letter-spacing: 3px;
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
 }
 
 /* ─── Responsive ─── */
