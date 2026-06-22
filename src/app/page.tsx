@@ -50,9 +50,20 @@ export default function HomePage() {
   useEffect(() => {
     setMounted(true);
     fetch('/api/products?status=active')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then(setProducts)
-      .catch(() => {});
+      .catch(err => {
+        console.error('Failed to load products:', err);
+        // Retry once after 5s on failure
+        setTimeout(() => {
+          fetch('/api/products?status=active')
+            .then(r => r.ok && r.json().then(setProducts).catch(() => {}))
+            .catch(() => {});
+        }, 5000);
+      });
   }, []);
 
   const featured = products.slice(0, 8);
