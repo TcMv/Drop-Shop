@@ -99,7 +99,7 @@ export interface Order {
   customerEmail: string;
   customerPhone: string;
   shippingAddress: any;
-  status: "pending" | "placed_with_supplier" | "shipped" | "delivered" | "cancelled";
+  status: "pending" | "paid" | "placed_with_supplier" | "shipped" | "delivered" | "cancelled";
   supplierOrderRef?: string;
   trackingUrl?: string;
   notes?: string;
