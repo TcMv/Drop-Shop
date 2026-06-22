@@ -1,0 +1,1 @@
+{"company":"drop-shop","action":"Order Processing","detail":{"processed":0,"errors":[],"shipments_updated":0},"timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}
