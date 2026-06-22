@@ -13,6 +13,9 @@ out/
 data/
 *.db
 
+# TypeScript
+tsconfig.tsbuildinfo
+
 # IDE
 .vscode/
 .idea/
