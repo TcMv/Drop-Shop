@@ -71,7 +71,7 @@ export default function Navbar() {
           {!isAdmin && (
             <div className="hidden md:flex items-center gap-8">
               <Link
-                href="/"
+                href="/#products"
                 className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors relative group"
               >
                 Shop
@@ -158,7 +158,7 @@ export default function Navbar() {
         <div className="md:hidden border-t border-[var(--color-border-default)] bg-[var(--color-surface-canvas)]/95 backdrop-blur-xl">
           <div className="max-w-7xl mx-auto px-4 py-4 space-y-1">
             <Link
-              href="/"
+              href="/#products"
               className="block px-4 py-3 rounded-xl text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(45,106,79,0.06)] transition-all"
               onClick={() => setMobileMenuOpen(false)}
             >
