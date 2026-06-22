@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getProducts, updateProduct, Product } from '@/lib/db';
+import { getProducts, updateProduct } from '@/lib/db';
+import type { Product } from '@/lib/types';
 
 const IMAGE_UPDATES: Record<string, string[]> = {
   "Mini Portable Bluetooth Speaker": [

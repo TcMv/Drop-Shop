@@ -71,51 +71,7 @@ async function patch<T = any>(table: string, body: any, query: string): Promise<
   });
 }
 
-// ── Types ──
-
-export interface Product {
-  id: string;
-  title: string;
-  slug: string;
-  description: string;
-  price: number;
-  cost: number;
-  images: string[];
-  category: string;
-  tags: string[];
-  supplier: string;
-  supplierUrl: string;
-  stock: number;
-  status: "active" | "draft" | "archived";
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Order {
-  id: string;
-  items: { productId: string; title: string; price: number; quantity: number }[];
-  total: number;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  shippingAddress: any;
-  status: "pending" | "paid" | "placed_with_supplier" | "shipped" | "delivered" | "cancelled";
-  supplierOrderRef?: string;
-  trackingUrl?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface AuditEntry {
-  id: string;
-  timestamp: string;
-  agent: string;
-  action: string;
-  details: string;
-  status: "success" | "error" | "info";
-  metadata?: Record<string, unknown>;
-}
+import type { Product, Order, AuditEntry } from './types';
 
 // ── Mappers ──
 

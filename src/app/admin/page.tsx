@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { FiPackage, FiTruck, FiBarChart2, FiSettings, FiShield, FiExternalLink, FiZap, FiActivity } from 'react-icons/fi';
-import { getProducts, getOrders, Product, Order } from '@/lib/db';
+import { getProducts, getOrders } from '@/lib/db';
+import type { Product, Order } from '@/lib/types';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminPage() {
