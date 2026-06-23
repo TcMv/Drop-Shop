@@ -44,6 +44,8 @@ export default function ProductPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [liked, setLiked] = useState(false);
+  const [personalisation, setPersonalisation] = useState('');
+  const [personalisationError, setPersonalisationError] = useState('');
 
   useEffect(() => {
     fetch(`/api/products?slug=${slug}`)
@@ -52,14 +54,31 @@ export default function ProductPage() {
       .catch(() => setLoading(false));
   }, [slug]);
 
+  const getCharLimit = (): number => {
+    if (!product) return 30;
+    const idNum = parseInt(product.id.replace('golf-', ''), 10);
+    if (idNum <= 2) return 20;  // ball stamps
+    if (idNum === 5) return 50; // towels
+    return 30;                  // divot tools, ball markers, scorecard holders
+  };
+
   const addToCart = () => {
     if (!product) return;
+    if (product.category === 'personalised' && !personalisation.trim()) {
+      setPersonalisationError('Please enter your engraving text');
+      return;
+    }
+    if (product.category === 'personalised' && personalisation.trim().length > getCharLimit()) {
+      setPersonalisationError(`Maximum ${getCharLimit()} characters`);
+      return;
+    }
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const existing = cart.findIndex((i: any) => i.productId === product.id);
     if (existing >= 0) cart[existing].quantity += quantity;
     else cart.push({
       productId: product.id, title: product.title,
-      price: product.price, quantity, image: product.images[0]
+      price: product.price, quantity, image: product.images[0],
+      personalisation: product.category === 'personalised' ? personalisation.trim() : undefined
     });
     localStorage.setItem('cart', JSON.stringify(cart));
     setAdded(true);
@@ -196,6 +215,72 @@ export default function ProductPage() {
                     #{t}
                   </span>
                 ))}
+              </div>
+            )}
+
+            {/* ─── Personalisation Input ─── */}
+            {product.category === 'personalised' && (
+              <div className="mb-8 p-5 rounded-2xl bg-[var(--color-surface-raised)] border border-[var(--color-border-default)]">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-[rgba(45,106,79,0.08)] flex items-center justify-center">
+                    <FiPackage className="w-4 h-4 text-[#52B788]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
+                      Personalise Your Item
+                    </h3>
+                    <p className="text-[10px] text-[var(--color-text-tertiary)]">
+                      Enter the text you'd like engraved or stamped
+                    </p>
+                  </div>
+                </div>
+
+                <textarea
+                  value={personalisation}
+                  onChange={e => {
+                    setPersonalisation(e.target.value);
+                    if (personalisationError) setPersonalisationError('');
+                  }}
+                  placeholder="e.g. Par 3 Champion '24"
+                  maxLength={getCharLimit() + 5}
+                  rows={2}
+                  className="w-full px-4 py-3 rounded-xl text-sm bg-[var(--color-surface-card)] border border-[var(--color-border-default)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] resize-none transition-all duration-200 focus:outline-none focus:border-[#2D6A4F] focus:ring-1 focus:ring-[rgba(45,106,79,0.15)]"
+                />
+
+                {/* Character count + preview */}
+                <div className="flex items-center justify-between mt-2">
+                  <span className={`text-xs ${
+                    personalisation.length > getCharLimit()
+                      ? 'text-red-400'
+                      : 'text-[var(--color-text-tertiary)]'
+                  }`}>
+                    {personalisation.length}/{getCharLimit()} characters
+                  </span>
+                  {personalisation.length > 0 && personalisation.length <= getCharLimit() && (
+                    <span className="text-xs text-[#52B788] flex items-center gap-1">
+                      <FiCheck className="w-3 h-3" /> Ready
+                    </span>
+                  )}
+                </div>
+
+                {/* Preview */}
+                {personalisation.trim().length > 0 && personalisation.trim().length <= getCharLimit() && (
+                  <div className="mt-3 p-3 rounded-xl bg-[rgba(45,106,79,0.06)] border border-[rgba(45,106,79,0.1)]">
+                    <p className="text-[10px] text-[var(--color-text-tertiary)] uppercase tracking-wider mb-1.5 font-medium">
+                      Preview
+                    </p>
+                    <p className="text-sm font-accent text-[#E8DCC4] tracking-wider">
+                      {personalisation.trim()}
+                    </p>
+                  </div>
+                )}
+
+                {/* Error */}
+                {personalisationError && (
+                  <p className="mt-2 text-xs text-red-400 flex items-center gap-1">
+                    <span>⚠</span> {personalisationError}
+                  </p>
+                )}
               </div>
             )}
 

@@ -22,11 +22,20 @@ export interface CartItem {
   price: number;
   quantity: number;
   image: string;
+  personalisation?: string;
+}
+
+export interface OrderItem {
+  productId: string;
+  title: string;
+  price: number;
+  quantity: number;
+  personalisation?: string;
 }
 
 export interface Order {
   id: string;
-  items: { productId: string; title: string; price: number; quantity: number }[];
+  items: OrderItem[];
   total: number;
   customerName: string;
   customerEmail: string;

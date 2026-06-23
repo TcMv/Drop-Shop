@@ -10,7 +10,7 @@ import Link from 'next/link';
 
 interface CartItem {
   productId: string; title: string; price: number;
-  quantity: number; image: string;
+  quantity: number; image: string; personalisation?: string;
 }
 
 export default function CheckoutPage() {
@@ -55,6 +55,7 @@ export default function CheckoutPage() {
             price: i.price,
             quantity: i.quantity,
             image: i.image,
+            personalisation: i.personalisation,
           })),
           customerName: form.name,
           customerEmail: form.email,
@@ -318,6 +319,11 @@ export default function CheckoutPage() {
                       <p className="text-sm text-[var(--color-text-primary)] line-clamp-1 font-medium">
                         {item.title}
                       </p>
+                      {item.personalisation && (
+                        <p className="text-[10px] text-[#E8DCC4] mt-0.5 italic">
+                          "{item.personalisation}"
+                        </p>
+                      )}
                       <p className="text-xs text-[var(--color-text-tertiary)]">
                         Qty: {item.quantity}
                       </p>

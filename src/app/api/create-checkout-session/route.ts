@@ -13,6 +13,7 @@ interface CartItem {
   price: number;
   quantity: number;
   image: string;
+  personalisation?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -69,7 +70,13 @@ export async function POST(request: NextRequest) {
         },
       ],
       metadata: {
-        items: JSON.stringify(items.map((i: CartItem) => ({ id: i.productId, title: i.title, price: i.price, qty: i.quantity }))),
+        items: JSON.stringify(items.map((i: CartItem) => ({
+          id: i.productId,
+          title: i.title,
+          price: i.price,
+          qty: i.quantity,
+          personalisation: i.personalisation,
+        }))),
         customer_name: customerName,
         customer_phone: customerPhone,
         shipping_address: JSON.stringify(shippingAddress),

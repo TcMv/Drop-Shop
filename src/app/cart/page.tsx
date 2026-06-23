@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   FiTrash2, FiPlus, FiMinus, FiShoppingCart, FiCheck,
-  FiArrowLeft, FiShield, FiTruck, FiZap
+  FiArrowLeft, FiShield, FiTruck, FiZap, FiPackage
 } from 'react-icons/fi';
 
 interface CartItem {
   productId: string; title: string; price: number;
-  quantity: number; image: string;
+  quantity: number; image: string; personalisation?: string;
 }
 
 export default function CartPage() {
@@ -112,6 +112,12 @@ export default function CartPage() {
                         {item.title}
                       </h3>
                     </Link>
+                    {item.personalisation && (
+                      <p className="text-xs text-[#E8DCC4] mt-0.5 flex items-center gap-1">
+                        <FiPackage className="w-3 h-3 text-[#52B788]" />
+                        <span className="italic">"{item.personalisation}"</span>
+                      </p>
+                    )}
                     <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                       ${item.price.toFixed(2)}
                     </p>
