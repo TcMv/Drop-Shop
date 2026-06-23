@@ -34,7 +34,7 @@ export default function CheckoutPage() {
   }, [router]);
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = subtotal > 99 ? 0 : 5.99;
+  const shipping = subtotal > 79 ? 0 : 5.99;
   const total = subtotal + shipping;
   const valid = form.name && form.email && form.address && form.city;
 
@@ -273,6 +273,37 @@ export default function CheckoutPage() {
                 Order Summary
               </h3>
 
+              {/* Free shipping progress bar */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-[var(--color-text-tertiary)]">
+                    {subtotal >= 79
+                      ? "You've unlocked free shipping!"
+                      : `Add $${(79 - subtotal).toFixed(0)} more for free shipping`}
+                  </span>
+                  {subtotal > 0 && subtotal < 79 && (
+                    <span className="text-xs text-[var(--color-text-tertiary)]">
+                      {Math.min(100, Math.round((subtotal / 79) * 100))}%
+                    </span>
+                  )}
+                </div>
+                <div className="w-full h-2 rounded-full bg-[var(--color-surface-elevated)] overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      subtotal >= 79
+                        ? 'bg-emerald-500'
+                        : 'bg-gradient-to-r from-[#D4A843] to-[#52B788]'
+                    }`}
+                    style={{ width: `${Math.min(100, (subtotal / 79) * 100)}%` }}
+                  />
+                </div>
+                {subtotal >= 79 && (
+                  <p className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
+                    <FiCheck className="w-3 h-3" /> Free shipping applied
+                  </p>
+                )}
+              </div>
+
               <div className="space-y-4 mb-6">
                 {items.map(item => (
                   <div key={item.productId} className="flex gap-3">
@@ -312,7 +343,7 @@ export default function CheckoutPage() {
                 {shipping > 0 && (
                   <p className="text-xs text-[var(--color-text-tertiary)] flex items-center gap-1">
                     <FiTruck className="w-3 h-3 text-[#52B788]" />
-                    Free on orders $99+
+                    Free on orders $79+
                   </p>
                 )}
                 <div className="border-t border-[var(--color-border-default)] pt-3 mt-3">

@@ -59,3 +59,23 @@ CREATE TABLE settings (
   key varchar(200) PRIMARY KEY,
   value text NOT NULL DEFAULT ''
 );
+
+CREATE TABLE hackers_club (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email varchar(320) NOT NULL,
+  source varchar(100) NOT NULL DEFAULT 'homepage',
+  member_number integer NOT NULL,
+  discount_code varchar(20) NOT NULL DEFAULT 'HACKERS10',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX idx_hackers_club_email ON hackers_club(email);
+CREATE INDEX idx_hackers_club_member_number ON hackers_club(member_number);
+
+ALTER TABLE hackers_club ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY anon_insert ON hackers_club
+  FOR INSERT TO anon WITH CHECK (true);
+
+CREATE POLICY anon_select ON hackers_club
+  FOR SELECT TO anon USING (true);

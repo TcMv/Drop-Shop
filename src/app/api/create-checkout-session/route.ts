@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     // Calculate total for metadata
     const total = items.reduce((s: number, i: CartItem) => s + i.price * i.quantity, 0);
-    const shipping = total > 50 ? 0 : 5.99;
+    const shipping = total > 79 ? 0 : 5.99;
     const grandTotal = total + shipping;
 
     // Create a Stripe Checkout Session

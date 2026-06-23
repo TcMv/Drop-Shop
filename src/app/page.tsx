@@ -12,7 +12,7 @@ interface Product {
 
 const TRUST_METRICS = [
   { label: 'Products', value: '15+', icon: '🏌️' },
-  { label: 'Free Shipping', value: 'Over $99', icon: '📦' },
+  { label: 'Free Shipping', value: 'Over $79', icon: '📦' },
   { label: 'AU Delivery', value: '14-21 Days', icon: '🦘' },
   { label: 'Hackers Club', value: 'Free to Join', icon: '🎲' },
 ];
@@ -46,6 +46,9 @@ export default function HomePage() {
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
   const [emailSubmitted, setEmailSubmitted] = useState(false);
+  const [emailSubmitting, setEmailSubmitting] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [memberNumber, setMemberNumber] = useState<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -95,7 +98,7 @@ export default function HomePage() {
               <RevealOnScroll>
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[rgba(45,106,79,0.1)] border border-[rgba(45,106,79,0.15)] text-sm text-[#52B788] mb-6">
                   <span>🏌️</span>
-                  AU Golf Accessories — Free Shipping Over $99
+                  AU Golf Accessories — Free Shipping Over $79
                 </div>
               </RevealOnScroll>
 
@@ -138,7 +141,7 @@ export default function HomePage() {
                 <div className="flex flex-wrap gap-8 mt-12">
                   {[
                     { icon: FiShield, text: 'AU Sourced' },
-                    { icon: FiTruck, text: 'Free Shipping $99+' },
+                    { icon: FiTruck, text: 'Free Shipping $79+' },
                     { icon: FiClock, text: '30-Day Returns' },
                   ].map(item => (
                     <div key={item.text} className="flex items-center gap-2.5 text-sm text-[var(--color-text-tertiary)]">
@@ -322,9 +325,26 @@ export default function HomePage() {
             {/* Email signup */}
             {!emailSubmitted ? (
               <form
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
-                  if (email.trim()) setEmailSubmitted(true);
+                  if (!email.trim()) return;
+                  setEmailError('');
+                  setEmailSubmitting(true);
+                  try {
+                    const res = await fetch('/api/hackers-club', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email: email.trim(), source: 'homepage' }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Failed to join');
+                    if (data.member_number) setMemberNumber(data.member_number);
+                    setEmailSubmitted(true);
+                  } catch (err: any) {
+                    setEmailError(err.message || 'Something went wrong. Please try again.');
+                  } finally {
+                    setEmailSubmitting(false);
+                  }
                 }}
                 className="flex flex-col sm:flex-row items-center gap-3 max-w-md mx-auto"
               >
@@ -332,19 +352,35 @@ export default function HomePage() {
                   type="email"
                   placeholder="Enter your email"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={e => {
+                    setEmail(e.target.value);
+                    if (emailError) setEmailError('');
+                  }}
                   required
-                  className="input-field flex-1 bg-[#0C0C0C]/50 border-[rgba(212,168,67,0.15)] focus:border-[#D4A843] text-center sm:text-left"
+                  disabled={emailSubmitting}
+                  className="input-field flex-1 bg-[#0C0C0C]/50 border-[rgba(212,168,67,0.15)] focus:border-[#D4A843] text-center sm:text-left disabled:opacity-50"
                   style={{ color: '#FBFBFB' }}
                 />
-                <button type="submit" className="btn-gold whitespace-nowrap px-8 py-3 text-sm">
-                  Join Free
+                <button
+                  type="submit"
+                  disabled={emailSubmitting}
+                  className="btn-gold whitespace-nowrap px-8 py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {emailSubmitting ? 'Joining...' : 'Join Free'}
                 </button>
+                {emailError && (
+                  <p className="text-red-400 text-sm mt-1 sm:mt-0 sm:absolute sm:-bottom-6">
+                    {emailError}
+                  </p>
+                )}
               </form>
             ) : (
               <div className="p-8 rounded-2xl bg-[rgba(212,168,67,0.06)] border border-[rgba(212,168,67,0.12)] max-w-md mx-auto">
                 <p className="gold-text font-semibold text-lg">🎉 Welcome to the club!</p>
-                <p className="text-sm text-[#E8DCC4]/70 mt-2">Check your email for your member number and perks.</p>
+                <p className="text-sm text-[#E8DCC4]/70 mt-1">
+                  {memberNumber ? <>You&apos;re member <strong>#{memberNumber}</strong>.</> : 'Member confirmed.'}
+                </p>
+                <p className="text-sm text-[#E8DCC4]/70 mt-2">Use code <strong className="gold-text">HACKERS10</strong> for 10% off your first order. Perks coming soon!</p>
               </div>
             )}
 
@@ -427,13 +463,13 @@ export default function HomePage() {
               <div key={arrIdx} className="flex items-center gap-12">
                 {[
                   { name: 'AU Delivery', icon: '🦘' },
-                  { name: 'Free Shipping $99+', icon: '📦' },
+                  { name: 'Free Shipping $79+', icon: '📦' },
                   { name: 'Personalised Available', icon: '✏️' },
                   { name: 'Hackers Club', icon: '🎲' },
                   { name: 'Premium Quality', icon: '🏌️' },
                   { name: '30-Day Returns', icon: '🔄' },
                   { name: 'AU Delivery', icon: '🦘' },
-                  { name: 'Free Shipping $99+', icon: '📦' },
+                  { name: 'Free Shipping $79+', icon: '📦' },
                   { name: 'Personalised Available', icon: '✏️' },
                   { name: 'Hackers Club', icon: '🎲' },
                   { name: 'Premium Quality', icon: '🏌️' },

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  FiTrash2, FiPlus, FiMinus, FiShoppingCart,
+  FiTrash2, FiPlus, FiMinus, FiShoppingCart, FiCheck,
   FiArrowLeft, FiShield, FiTruck, FiZap
 } from 'react-icons/fi';
 
@@ -49,7 +49,7 @@ export default function CartPage() {
   }
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = subtotal > 99 ? 0 : 5.99;
+  const shipping = subtotal > 79 ? 0 : 5.99;
   const total = subtotal + shipping;
 
   if (!mounted) return null;
@@ -150,7 +150,7 @@ export default function CartPage() {
               <div className="flex items-center gap-3 p-4 rounded-2xl bg-[rgba(45,106,79,0.04)] border border-[rgba(45,106,79,0.08)]">
                 <span className="text-xl">🏌️</span>
                 <p className="text-xs text-[var(--color-text-tertiary)]">
-                  Premium AU golf accessories. Free shipping on orders over $99.
+                  Premium AU golf accessories. Free shipping on orders over $79.
                 </p>
               </div>
             </div>
@@ -161,6 +161,37 @@ export default function CartPage() {
                 <h3 className="font-display font-semibold text-lg text-[var(--color-text-primary)] mb-4">
                   Order Summary
                 </h3>
+
+                {/* Free shipping progress bar */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-[var(--color-text-tertiary)]">
+                      {subtotal >= 79
+                        ? "You've unlocked free shipping!"
+                        : `Add $${(79 - subtotal).toFixed(0)} more for free shipping`}
+                    </span>
+                    {subtotal > 0 && subtotal < 79 && (
+                      <span className="text-xs text-[var(--color-text-tertiary)]">
+                        {Math.min(100, Math.round((subtotal / 79) * 100))}%
+                      </span>
+                    )}
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-[var(--color-surface-elevated)] overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        subtotal >= 79
+                          ? 'bg-emerald-500'
+                          : 'bg-gradient-to-r from-[#D4A843] to-[#52B788]'
+                      }`}
+                      style={{ width: `${Math.min(100, (subtotal / 79) * 100)}%` }}
+                    />
+                  </div>
+                  {subtotal >= 79 && (
+                    <p className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
+                      <FiCheck className="w-3 h-3" /> Free shipping applied
+                    </p>
+                  )}
+                </div>
 
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
@@ -178,7 +209,7 @@ export default function CartPage() {
                   {shipping > 0 && (
                     <p className="text-xs text-[var(--color-text-tertiary)] flex items-center gap-1">
                       <FiTruck className="w-3 h-3 text-[var(--color-brand-400)]" />
-                      Free shipping on orders over $99
+                      Free shipping on orders over $79
                     </p>
                   )}
                   <div className="border-t border-[var(--color-border-default)] pt-3 mt-3">
