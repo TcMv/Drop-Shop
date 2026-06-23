@@ -10,6 +10,8 @@ export interface Product {
   tags: string[];
   supplier: string;
   supplierUrl: string;
+  cjSku?: string;
+  cjVid?: string;
   stock: number;
   status: 'active' | 'draft' | 'archived';
   createdAt: string;

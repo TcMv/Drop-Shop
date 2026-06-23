@@ -83,6 +83,7 @@ function rowToProduct(r: any): Product {
     category: r.category,
     tags: typeof r.tags === "string" ? JSON.parse(r.tags) : r.tags || [],
     supplier: r.supplier, supplierUrl: r.supplier_url || "",
+    cjSku: r.cj_sku || undefined, cjVid: r.cj_vid || undefined,
     stock: r.stock, status: r.status,
     createdAt: r.created_at, updatedAt: r.updated_at,
   };
@@ -131,6 +132,7 @@ export async function createProduct(product: Product): Promise<void> {
     images: JSON.stringify(product.images), category: product.category,
     tags: JSON.stringify(product.tags), supplier: product.supplier,
     supplier_url: product.supplierUrl, stock: product.stock, status: product.status,
+    cj_sku: product.cjSku || null, cj_vid: product.cjVid || null,
     created_at: product.createdAt, updated_at: product.updatedAt,
   });
   if (error) throw new Error(`createProduct: ${error.message}`);
@@ -144,6 +146,8 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
   if (updates.status !== undefined) body.status = updates.status;
   if (updates.images !== undefined) body.images = JSON.stringify(updates.images);
   if (updates.stock !== undefined) body.stock = updates.stock;
+  if (updates.cjSku !== undefined) body.cj_sku = updates.cjSku;
+  if (updates.cjVid !== undefined) body.cj_vid = updates.cjVid;
   body.updated_at = new Date().toISOString();
   const { error } = await patch("products", body, `id=eq.${id}`);
   if (error) throw new Error(`updateProduct: ${error.message}`);
